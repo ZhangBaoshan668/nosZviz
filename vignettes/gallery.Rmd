@@ -1,0 +1,177 @@
+---
+title: "nosZviz 可视化图库（Gallery）"
+output:
+  rmarkdown::html_vignette:
+    toc: true
+    toc_depth: 2
+    fig_width: 7
+    fig_height: 5
+vignette: >
+  %\VignetteIndexEntry{nosZviz Gallery}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE, comment = "#>", eval = FALSE
+)
+```
+
+# nosZviz 可视化图库
+
+本图库按**分析类型**组织 nosZviz 全部图型。每张图附**一行可复制代码**与**关键参数说明**：
+浏览 → 找到想要的图 → 复制代码 → 把 `res` 换成自己的 `read_noszref()` 结果即可复现。
+
+一键全套（60+ 图 + HTML 图库）见文末「一键生成」；运行本包自带的
+`noszref_visualize()` 后，输出目录里的 `index.html` 是带「复制代码」按钮的交互式图库。
+
+## 0. 通用准备
+
+所有函数的第一个参数都是 `read_noszref()` 的解析结果 `res`。
+
+```r
+library(nosZviz)
+res <- read_noszref("path/to/NosZRef/output")   # 含 merge/ 的那层目录
+# 有环境因子表时（含 SampleID 列 + 数值列，CSV 路径或 data.frame 均可）：
+env <- read.csv("env.csv")
+res_env <- prepare_env(res, env)                # 环境层准备（也可直接传 env=）
+```
+
+通用图形参数（几乎所有绘图函数共用）：
+
+| 参数 | 说明 | 默认 |
+|---|---|---|
+| `group` | 分组列名（design 表中） | `"Group"` |
+| `rank` | 分类级别 `"phylum"~"species"` | `"genus"` |
+| `top_n` | 取前 N 个分类单元 | 10 |
+| `palette` | 配色方案 | `"main"` |
+| `label_italic` | 分类标签是否斜体（种拉丁名） | `TRUE` |
+
+导出：`nosz_save(p, "fig1", width = 180, height = 120, formats = c("pdf","png"), dpi = 600)`
+（单位 mm，PDF 矢量 + PNG 位图一次出齐）。
+
+## 1. 丰度与分支分配（Abundance）
+
+| 图 | 一行代码 | 关键参数 |
+|---|---|---|
+| 三分支 RPKM 柱状/箱线 | `plot_branch_rpkm(res, mode = "box")` | `mode`: `"bar"`/`"box"`/`"group"`（组均值±SD） |
+| 100% 堆叠组成 | `plot_branch_composition(res, layout = "stack")` | `layout`: `"stack"`/`"donut"`（组均值环形） |
+| reads→三分支桑基图 | `plot_reads_partition(res)` | 无额外参数 |
+| Whittaker 秩-丰度曲线 | `plot_rank_abundance(res, log = "xy")` | `log`: 坐标轴对数变换 |
+| 样本×分支 z-score 热图 | `plot_branch_heatmap(res)` | — |
+| 分支丰度小提琴 | `plot_branch_violin(res)` | — |
+
+## 2. 分类组成（Composition）
+
+| 图 | 一行代码 | 关键参数 |
+|---|---|---|
+| 堆叠柱（样本/分组布局） | `plot_tax_stack(res, rank = "phylum", by = "group")` | `by`: `"sample"`/`"group"`；多分支自动分面 |
+| Top-N 分类热图 | `plot_tax_heatmap(res, rank = "genus", top_n = 20)` | 行聚类 + 分组注释条 |
+| 气泡图 | `plot_tax_bubble(res, rank = "genus")` | 大小=丰度，颜色=z-score |
+| 河流/冲积图 | `plot_tax_area(res, rank = "phylum")` | — |
+| 门-属双层环形 sunburst | `plot_tax_sunburst(res)` | 内圈门、外圈属 |
+| 三分支贡献三角图 | `plot_tax_ternary(res, rank = "genus")` | 顶点=三个 clade |
+| Top-N 分组条形 | `plot_top_taxa(res, rank = "genus", top_n = 8)` | 小倍数面板 |
+| 属间 Spearman 相关热图 | `plot_tax_corr(res, rank = "genus")` | 聚类排序 |
+
+## 3. Alpha 多样性
+
+| 图 | 一行代码 | 关键参数 |
+|---|---|---|
+| 箱线 + 检验注释 | `plot_alpha_box(res, index = "shannon")` | 自动 Wilcoxon/Kruskal 标注 |
+| 小提琴 | `plot_alpha_violin(res, index = "richness")` | — |
+| 多指数雷达图 | `plot_alpha_radar(res)` | 6 种指数 |
+| 稀释曲线 | `plot_rarefaction(res)` | 组均值±SD |
+| 样本×指数热图 | `plot_alpha_heatmap(res)` | — |
+| 指数两两散点 | `plot_alpha_scatter(res)` | Spearman 系数 |
+| 六指数组合面板 | `plot_alpha_panel(res)` | patchwork 拼接 |
+| 山脊图（v0.2.0） | `plot_alpha_ridge(res, index = "shannon")` | 组间密度对比 |
+
+## 4. Beta 多样性
+
+| 图 | 一行代码 | 关键参数 |
+|---|---|---|
+| PCoA/NMDS/PCA | `plot_ordination(res, method = "PCoA", dist = "bray")` | 椭圆 + PERMANOVA 注释 |
+| 四距离矩阵对比面板 | `plot_beta_panel(res)` | — |
+| 距离矩阵热图 | `plot_beta_heatmap(res, dist = "bray")` | — |
+| UPGMA 聚类树 | `plot_beta_dendrogram(res, dist = "bray")` | 分组着色 |
+| 组内离散度箱线 | `plot_beta_dispersion(res, dist = "bray")` | — |
+| 样本间相关热图 | `plot_sample_corr(res)` | — |
+| 距离检验一表 | `calc_permanova(res, dist = "bray")` | PERMANOVA/ANOSIM/MRPP/betadisper |
+
+## 5. 差异丰度（Differential）
+
+```r
+d <- calc_diff_taxa(res, rank = "genus")   # 差异表（Wilcoxon/t + BH + 95% CI）
+plot_diff_volcano(d)                        # 其余图型都吃这张差异表
+```
+
+| 图 | 一行代码 | 关键参数 |
+|---|---|---|
+| 火山图 | `plot_diff_volcano(d)` | `fdr`, `log2fc` 阈值 |
+| MA 图 | `plot_diff_ma(d)` | — |
+| 森林图 | `plot_diff_forest(d)` | 效应量 + CI |
+| STAMP 误差条（三联面板） | `plot_diff_stamp(d)` | — |
+| 差异热图 | `plot_diff_heatmap(d)` | 星号标注 |
+| LEfSe 条形图（v0.2.0） | `plot_lefse(calc_lefse(res, rank = "genus"))` | `kw_p`, `wilcox_p`, `lda_cut` 阈值 |
+| 指示种图（v0.2.0） | `plot_indicator(calc_indicator(res, rank = "genus"))` | IndVal + 置换检验 |
+
+## 6. 共现网络（Network）
+
+| 图 | 一行代码 | 关键参数 |
+|---|---|---|
+| 网络图 | `plot_network(res, branch = "nosZI")` | 模块着色、度定大小、正负边分色 |
+| Zi-Pi 拓扑角色图 | `plot_network_zipi(res, branch = "nosZI")` | — |
+| 拓扑参数组间对比 | `plot_network_properties(res, branch = "nosZI")` | — |
+| 度分布（幂律拟合） | `plot_network_degree(res, branch = "nosZI")` | log-log |
+| 模块规模与连通性 | `plot_network_modules(res, branch = "nosZI")` | — |
+| 组间共享节点 UpSet | `plot_network_upset(res, branch = "nosZI")` | — |
+
+## 7. 支系生态学（Clade，v0.2.0 新增）
+
+回答审稿人必问的「Clade II 的优势由谁驱动」类问题，**所有图保留 Clade I/II/III 分辨率**。
+
+| 图 | 一行代码 | 关键参数 |
+|---|---|---|
+| 支系嵌套分类组成 | `plot_clade_profile(res, rank = "phylum")` | 支系段描边 + 支系内渐变填充 |
+| Clade II/I 比值柱 | `plot_clade_ratio(res)` | log2 比值，nosZ 文献经典指标 |
+| 支系两两散点 | `plot_clade_scatter(res)` | Spearman 相关 |
+| 每样本支系统计表 | `calc_clade_stats(res)` | 直接进补充材料 |
+| 分组↔支系弦图 | `plot_chord(res, value = "rpkm")` | 返回对象 `print()` 显示 |
+| 分组×支系环形柱 | `plot_circular_bar(res)` | — |
+| 类群丰度谱系环形树 | `plot_tax_dendrogram(res, rank = "genus")` | UPGMA（非系统发育树，图注已注明） |
+
+## 8. 环境因子关联（Environment，v0.2.0 新增）
+
+需要环境表：`env` 含 `SampleID` 列 + 数值列（pH、NO₃⁻、盐度等）。
+
+| 图 | 一行代码 | 关键参数 |
+|---|---|---|
+| 约束排序 RDA/CCA/db-RDA | `plot_ordination_constrained(res, env, method = "RDA")` | 约束轴解释率 + 置换检验 P |
+| PCoA + envfit 向量 | `plot_envfit_ordination(res, env, dist = "bray")` | R²/P 标注 |
+| Mantel 组合图 | `plot_mantel_env(res, env)` | 左：环境 Spearman 热图；右：支系群落 Mantel 连线 |
+| alpha × 环境相关热图 | `plot_alpha_env_corr(res, env)` | Spearman + 星号 |
+| 类群-环境相关网络 | `plot_taxa_env_network(res, env, rank = "genus")` | 正负边分色 |
+| 环境因子相关热图 | `plot_env_corrplot(env)` | 上三角 + 数值 + 星号 |
+
+## 9. 差异进阶与其他（v0.2.0 新增）
+
+| 图 | 一行代码 | 关键参数 |
+|---|---|---|
+| 组间共享 OTU UpSet | `plot_group_upset(res)` | — |
+| 类群排名 bump 图 | `plot_taxa_bump(res, rank = "genus", top_n = 8)` | 排名随分组变化 |
+| 样本×类群环形热图 | `plot_circular_heatmap(res, rank = "genus")` | 按支系分扇区 |
+| 四面板总览 dashboard | `plot_overview_dashboard(res)` | — |
+
+## 10. 一键生成全套
+
+```r
+x <- read_noszref("path/to/NosZRef/output")
+res <- noszref_visualize(x, outdir = "nosZviz_output",
+                         env = "env.csv",               # 可选
+                         formats = c("pdf", "png"), dpi = 600)
+# 打开 nosZviz_output/index.html —— 交互式图库，每张图带「复制代码」按钮
+```
+
+`index.html` 即本页的交互版：按分析类型分组、缩略图预览、PDF 链接、一键复制代码。

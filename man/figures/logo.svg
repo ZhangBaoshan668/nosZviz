@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200" role="img" aria-label="nosZviz logo">
+  <title>nosZviz</title>
+  <!-- 外圈：三个支系弧（nosZ Clade I / II / III），呼应包内环形/弦图语言 -->
+  <g fill="none" stroke-width="13" stroke-linecap="round">
+    <path d="M 100 40 A 60 60 0 0 1 157.06 118.54" stroke="#1F78B4"/>
+    <path d="M 151.96 130 A 60 60 0 0 1 55.41 140.15" stroke="#FF7F00"/>
+    <path d="M 48.04 130 A 60 60 0 0 1 87.53 41.31" stroke="#33A02C"/>
+  </g>
+  <!-- 内芯：三分支丰度柱，暗示"可视化" -->
+  <g>
+    <rect x="80" y="96" width="8" height="22" rx="2" fill="#1F78B4"/>
+    <rect x="96" y="82" width="8" height="36" rx="2" fill="#FF7F00"/>
+    <rect x="112" y="100" width="8" height="18" rx="2" fill="#33A02C"/>
+    <line x1="76" y1="120" x2="124" y2="120" stroke="#3d4d5e" stroke-width="3" stroke-linecap="round"/>
+  </g>
+</svg>
