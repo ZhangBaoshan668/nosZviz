@@ -430,30 +430,6 @@ LEfSe / 指示种在小样本下也可能无显著结果，此时会降级展示
 装到非默认库后 `library()` 找不到、离线安装等 10 条排查路径。
 </details>
 
-## 🌐 文档与图库站点
-
-仓库里的 `docs/` 就是线上图库的源目录（`docs/index.html` + `docs/figures/*.png`，113 张，约 9.7 MB）：
-
-```
-docs/
-├── index.html      # 图库首页：分类分区 + 搜索框 + 每图「复制代码」
-├── .nojekyll       # 关掉 Jekyll，避免以下划线开头的资源被忽略
-└── figures/        # 113 张 PNG（按图库编号或 {branch}_{plot} 命名）
-```
-
-首次发布到 GitHub Pages：
-
-1. 把本目录推到 `ZhangBaoshan668/nosZviz` 的 `main` 分支；
-2. 仓库 **Settings → Pages → Build and deployment**：Source 选 *Deploy from a branch*，
-   Branch 选 `main`，目录选 **`/docs`**，Save；
-3. 等 1–2 分钟，站点地址为 <https://zhangbaoshan668.github.io/nosZviz/>。
-
-本地预览不用起服务器，直接双击 `docs/index.html` 即可。若要连 API 文档一起发布，
-可用 `pkgdown::build_site()` 覆盖 `docs/`（届时把上面的 `figures/` 与图库首页并入 `pkgdown` 的 `articles/` 即可）。
-
-> 想让图库跟着自己的数据更新：跑完 `noszref_visualize()` 后，把输出目录里的
-> `index.html` 与 `figures/*.png` 覆盖到 `docs/`，提交即可（图表由当前数据重新生成）。
-
 ## 📖 引用
 
 使用本包产出图表时，请引用 NosZRef 原文：
