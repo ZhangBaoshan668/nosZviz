@@ -1,12 +1,12 @@
 # ---------------------------------------------------------------------------
-# 模块三：alpha 多样性
+# alpha 
 # ---------------------------------------------------------------------------
 
-# 取 alpha 表（合并多分支）
+#  alpha 
 alpha_table <- function(x, branches = NULL) {
   branches <- branches %||% intersect(x$branches, names(x$alpha))
   branches <- branches[vapply(branches, function(b) !is.null(x$alpha[[b]]), logical(1))]
-  if (length(branches) == 0) nosz_abort("没有可用的 alpha 多样性结果。")
+  if (length(branches) == 0) nosz_abort(" alpha ")
   df <- do.call(rbind, lapply(branches, function(b) {
     d <- x$alpha[[b]]
     d$Branch <- b
@@ -22,13 +22,13 @@ ALPHA_LABEL <- c(richness = "Richness", chao1 = "Chao1", ACE = "ACE",
                  shannon = "Shannon", simpson = "Simpson",
                  invsimpson = "Inverse Simpson")
 
-# 指数名 -> 显示名
+#  -> 
 alpha_lab <- function(i) {
   out <- ifelse(i %in% names(ALPHA_LABEL), ALPHA_LABEL[i], i)
   unname(out)
 }
 
-# 组间检验，返回 p 值与检验名
+#  p 
 alpha_test <- function(value, group, method = c("wilcox", "kruskal", "t.test")) {
   method <- match.arg(method)
   ok <- stats::complete.cases(value, group)
@@ -68,7 +68,7 @@ plot_alpha_box <- function(x, index = "shannon", branch = NULL,
   test <- match.arg(test)
   df <- alpha_table(x, branch)
   index <- intersect(index, colnames(df))
-  if (length(index) == 0) nosz_abort("指定的 alpha 指数不存在。可选：",
+  if (length(index) == 0) nosz_abort(" alpha ",
                                      paste(setdiff(colnames(df), c("SampleID", "Group", "Branch")), collapse = ", "))
   long <- tidyr::pivot_longer(df, dplyr::all_of(index), names_to = "Index",
                               values_to = "Value")
@@ -115,7 +115,7 @@ plot_alpha_violin <- function(x, index = "shannon", branch = NULL,
   stopifnot(inherits(x, "noszref"))
   df <- alpha_table(x, branch)
   index <- intersect(index, colnames(df))
-  if (length(index) == 0) nosz_abort("指定的 alpha 指数不存在。")
+  if (length(index) == 0) nosz_abort(" alpha ")
   long <- tidyr::pivot_longer(df, dplyr::all_of(index), names_to = "Index",
                               values_to = "Value")
   long$Index <- factor(long$Index, levels = index,
@@ -156,7 +156,7 @@ plot_alpha_radar <- function(x, branch = NULL, indices = NULL,
   if (length(unique(df$Branch)) > 1) {
     df$Branch <- factor(df$Branch, levels = levels(df$Branch))
     df <- df[df$Branch == levels(df$Branch)[1], , drop = FALSE]
-    nosz_info("radar 图只展示分支 ", levels(droplevels(df$Branch))[1], "。")
+    nosz_info("radar  ", levels(droplevels(df$Branch))[1], "")
   }
   idx <- indices %||% intersect(c("richness", "chao1", "shannon", "simpson",
                                   "invsimpson"), colnames(df))
@@ -175,7 +175,7 @@ plot_alpha_radar <- function(x, branch = NULL, indices = NULL,
                               values_to = "Value")
   long$Index <- factor(long$Index, levels = idx,
                        labels = ifelse(idx %in% names(ALPHA_LABEL), ALPHA_LABEL[idx], idx))
-  # 闭合多边形
+  # 
   base <- long %>% dplyr::filter(Index == levels(Index)[1]) %>% dplyr::mutate(Index = factor("_close", levels = c(levels(long$Index), "_close")))
   lv <- c(levels(long$Index), "_close")
   long$Index <- factor(as.character(long$Index), levels = lv)
@@ -296,7 +296,7 @@ plot_alpha_scatter <- function(x, branch, index_x = "shannon",
   stopifnot(inherits(x, "noszref"))
   d <- nosz_need(x, "alpha", branch)
   if (!all(c(index_x, index_y) %in% colnames(d))) {
-    nosz_abort("指数不存在。可选：", paste(setdiff(colnames(d), "SampleID"), collapse = ", "))
+    nosz_abort("", paste(setdiff(colnames(d), "SampleID"), collapse = ", "))
   }
   d <- merge(d, x$design, by = "SampleID", all.x = TRUE)
   r <- suppressWarnings(stats::cor.test(d[[index_x]], d[[index_y]],

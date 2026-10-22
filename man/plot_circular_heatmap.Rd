@@ -24,6 +24,6 @@ plot_circular_heatmap(
 A ggplot object.
 }
 \description{
-环形热图：样本为列、类群为行（z-score），按支系分扇区排布，
-中心留白成环。适合作为"多分支一图流"的展示页首图。
+z-score
+""
 }

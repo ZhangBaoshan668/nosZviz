@@ -28,6 +28,8 @@ plot_diff_stamp(
 
 \item{method}{Differential test.}
 
+\item{padj_cut}{P-value cutoff}
+
 \item{top_n}{Number of taxa to display.}
 
 \item{sort_by}{\code{"difference"} or \code{"p"}.}

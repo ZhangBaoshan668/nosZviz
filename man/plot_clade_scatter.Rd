@@ -15,6 +15,5 @@ plot_clade_scatter(x, palette = "nosz")
 A ggplot (patchwork when >2 branches) object.
 }
 \description{
-三支系两两 RPKM 散点（log10），按分组着色并标注 Spearman 相关，
-用于判断支系间是竞争还是共存的粗略信号。
+RPKM log10 Spearman
 }

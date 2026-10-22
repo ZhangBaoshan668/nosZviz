@@ -9,7 +9,7 @@ plot_circular_bar(x, value = c("rpkm", "relative"), label_size = 2.4)
 \arguments{
 \item{x}{A \code{noszref} object.}
 
-\item{value}{\code{"rpkm"} 或 \code{"relative"}。}
+\item{value}{\code{"rpkm"}  \code{"relative"}}
 
 \item{label_size}{Label font size.}
 }
@@ -17,6 +17,6 @@ plot_circular_bar(x, value = c("rpkm", "relative"), label_size = 2.4)
 A ggplot object.
 }
 \description{
-环形柱状图：外圈按分组分面、支系着色的组均值 RPKM/占比柱，
-公众号常见的"高颜值组成图"变体。
+RPKM/
+""
 }

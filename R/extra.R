@@ -1,20 +1,20 @@
-# ---------------------------------------------------------------------------
-# 模块十：扩展图型（整合"R语言数据分析指南"等公众号/期刊常见可视化案例）
-#  - plot_mantel_env()      Mantel test 组合图（环境 Spearman 热图 + Mantel 连线）
-#  - plot_chord()           circlize 弦图（分组 <-> 支系丰度流向）
-#  - plot_circular_bar()    环形柱状图（分组 x 支系丰度）
-#  - plot_circular_heatmap()环形热图（样本 x 类群 z-score）
-#  - plot_alpha_ridge()     山脊图（alpha 指数组间分布）
-#  - plot_env_corrplot()    环境因子相关 corrplot（经典四色圆圈风格）
-#  - plot_taxa_bump()       排名变化 bump 图（类群丰度排名随分组变化）
-# ---------------------------------------------------------------------------
+#'
+# "R"/
+#  - plot_mantel_env()      Mantel test  Spearman  + Mantel 
+#  - plot_chord()           circlize  <-> 
+#  - plot_circular_bar()     x 
+#  - plot_circular_heatmap() x  z-score
+#  - plot_alpha_ridge()     alpha 
+#  - plot_env_corrplot()     corrplot
+#  - plot_taxa_bump()        bump 
+#'
 
 #' Mantel test combo plot (environment heatmap + Mantel links)
 #'
-#' 公众号/高分期刊高频出现的组合图：左侧为环境因子间的 Spearman 相关
-#' 下三角热图（带显著性星号），右侧以曲线连接各环境因子与各 nosZ
-#' 分支的类群距离矩阵，连线颜色编码 Mantel r，线宽编码 -log10(P)。
-#' 回答：**哪些环境因子既彼此相关，又整体上与某支系群落结构耦合？**
+#' / Spearman 
+#'  nosZ
+#'  Mantel r -log10(P)
+#'
 #'
 #' @param x A `noszref` object.
 #' @param env Environmental table (data frame with `SampleID`, or path).
@@ -32,11 +32,11 @@ plot_mantel_env <- function(x, env, level = "genus",
   stopifnot(inherits(x, "noszref"))
   method <- match.arg(method)
   env <- prepare_env(x, env)
-  if (is.null(env)) nosz_abort("环境表不可用。")
+  if (is.null(env)) nosz_abort("")
   evars <- setdiff(colnames(env), "SampleID")
-  if (length(evars) < 2) nosz_abort("环境表至少需要两个数值变量。")
+  if (length(evars) < 2) nosz_abort("")
 
-  # ---- 左：环境间 Spearman 下三角热图 ----
+  # ----  Spearman  ----
   em <- env[, evars, drop = FALSE]
   cors <- list()
   for (i in seq_along(evars)) for (j in seq_along(evars)) {
@@ -64,7 +64,7 @@ plot_mantel_env <- function(x, env, level = "genus",
     theme_nosz(border = FALSE, x_angle = 45) +
     ggplot2::theme(plot.margin = ggplot2::margin(4, 4, 14, 4, "pt"))
 
-  # ---- 右：Mantel 连线 ----
+  # ---- Mantel  ----
   mant <- list()
   for (b in x$branches) {
     m <- try(nosz_tax_matrix(x, b, level, value = "rpkm"), silent = TRUE)
@@ -86,12 +86,12 @@ plot_mantel_env <- function(x, env, level = "genus",
   }
   md <- do.call(rbind, mant)
   if (is.null(md) || nrow(md) == 0) {
-    nosz_abort("Mantel 检验无法完成（分支距离矩阵或环境数据不足）。")
+    nosz_abort("Mantel ")
   }
-  # 布局：环境变量在左侧一列（y 位置与热图行对齐），分支在右侧一列
+  # y 
   n_ev <- length(evars)
   n_br <- length(unique(md$Branch))
-  ev_y <- stats::setNames(seq(n_ev, 1), evars)          # 与热图行序一致
+  ev_y <- stats::setNames(seq(n_ev, 1), evars)          # 
   br_y <- stats::setNames(seq(n_br, 1), unique(md$Branch))
   md$y  <- ev_y[md$Env]
   md$yend <- br_y[md$Branch]
@@ -130,13 +130,13 @@ plot_mantel_env <- function(x, env, level = "genus",
 
 #' Chord diagram of group-clade abundance flows
 #'
-#' circlize 弦图：分组（扇区）与 nosZ 分支之间的丰度"流向"，每条弦的
-#' 宽度正比于该分组下该支系的平均 RPKM 占比——一眼读出"哪群样本把
-#' 丰度贡献给了哪个支系"。
+#' circlize  nosZ ""
+#'  RPKM "
+#' "
 #'
 #' @param x A `noszref` object.
-#' @param value `"rpkm"` 或 `"relative"`（分组内占比）。
-#' @return An object of class `nosz_chord`（print 时即时绘制弦图）.
+#' @param value `"rpkm"`  `"relative"`
+#' @return An object of class `nosz_chord`print .
 #' @export
 plot_chord <- function(x, value = c("rpkm", "relative")) {
   stopifnot(inherits(x, "noszref"))
@@ -149,32 +149,32 @@ plot_chord <- function(x, value = c("rpkm", "relative")) {
     }, numeric(1))
   })
   colnames(mat) <- x$branches
-  # 分组均值
+  # 
   gs <- unique(x$design$Group)
   mat <- t(sapply(gs, function(g) colMeans(mat[x$design$Group == g, , drop = FALSE])))
   rownames(mat) <- gs
   if (value == "relative") {
     tot <- sum(mat); if (tot > 0) mat <- mat / tot * 100
   }
-  if (sum(mat) == 0) nosz_abort("分支 RPKM 表缺失。")
+  if (sum(mat) == 0) nosz_abort(" RPKM ")
 
   grid_cols <- c(stats::setNames(nosz_pal(length(gs), "nosz"), gs),
                  clade_cols(x$branches))
-  # circlize/corrplot 为即时绘制图形：返回带 print 方法的对象，
-  # 使其既能在交互窗口直接 print，也能被 nosz_save() 正确输出
+  # circlize/corrplot  print 
+  #  print nosz_save() 
   structure(list(mat = mat, cols = grid_cols), class = "nosz_chord")
 }
 
 #' @export
 print.nosz_chord <- function(x, ...) {
-  # 出错也要清理 circos 状态，避免污染后续绘图
+  #  circos 
   on.exit(circlize::circos.clear(), add = TRUE)
   circlize::chordDiagram(x$mat, grid.col = x$cols,
                          annotationTrack = "grid", preAllocateTracks = 1,
                          transparency = 0.35)
   circlize::circos.trackPlotRegion(track.index = 1,
                                    panel.fun = function(x, y) {
-    # panel.fun 的形参是数据坐标；扇区名从 cell 元数据获取
+    # panel.fun  cell 
     xlim <- circlize::get.cell.meta.data("xlim")
     ylim <- circlize::get.cell.meta.data("ylim")
     sector.name <- circlize::get.cell.meta.data("sector.index")
@@ -187,11 +187,11 @@ print.nosz_chord <- function(x, ...) {
 
 #' Circular bar plot of group-level clade abundance
 #'
-#' 环形柱状图：外圈按分组分面、支系着色的组均值 RPKM/占比柱，
-#' 公众号常见的"高颜值组成图"变体。
+#'  RPKM/
+#' ""
 #'
 #' @param x A `noszref` object.
-#' @param value `"rpkm"` 或 `"relative"`。
+#' @param value `"rpkm"`  `"relative"`
 #' @param label_size Label font size.
 #' @return A ggplot object.
 #' @export
@@ -211,7 +211,7 @@ plot_circular_bar <- function(x, value = c("rpkm", "relative"),
                  stringsAsFactors = FALSE)
     }))
   }))
-  if (sum(long$Value) == 0) nosz_abort("分支 RPKM 表缺失。")
+  if (sum(long$Value) == 0) nosz_abort(" RPKM ")
   cols <- clade_cols(x$branches)
   p <- ggplot2::ggplot(long, ggplot2::aes(x = Group, y = Value, fill = Branch)) +
     ggplot2::geom_col(width = 0.78, colour = "grey20", linewidth = 0.15,
@@ -231,8 +231,8 @@ plot_circular_bar <- function(x, value = c("rpkm", "relative"),
 
 #' Circular heatmap of sample-by-taxon profiles
 #'
-#' 环形热图：样本为列、类群为行（z-score），按支系分扇区排布，
-#' 中心留白成环。适合作为"多分支一图流"的展示页首图。
+#' z-score
+#' ""
 #'
 #' @param x A `noszref` object.
 #' @param level Taxonomic level.
@@ -256,7 +256,7 @@ plot_circular_heatmap <- function(x, level = "genus", top_n = 12,
     blocks[[length(blocks) + 1]] <- long
   }
   d <- do.call(rbind, blocks)
-  if (is.null(d) || nrow(d) == 0) nosz_abort("没有可用的 ", level, " 层级矩阵。")
+  if (is.null(d) || nrow(d) == 0) nosz_abort(" ", level, " ")
   d$Branch <- factor(d$Branch, levels = x$branches)
   d$Taxon <- factor(d$Taxon, levels = rev(unique(d$Taxon)))
   smp_ord <- order_samples(unique(d$SampleID), x$design)
@@ -281,8 +281,8 @@ plot_circular_heatmap <- function(x, level = "genus", top_n = 12,
 
 #' Ridgeline plot of alpha diversity
 #'
-#' 山脊图（ggridges）：alpha 指数按分组的密度脊线堆叠，
-#' 直观展示组间分布的偏移与拖尾——公众号常见的分布比较图型。
+#' ggridgesalpha 
+#' 
 #'
 #' @param x A `noszref` object.
 #' @param branch Branch name.
@@ -294,7 +294,7 @@ plot_alpha_ridge <- function(x, branch, index = "shannon", palette = "nosz") {
   stopifnot(inherits(x, "noszref"))
   a <- nosz_need(x, "alpha", branch)
   if (!index %in% colnames(a)) {
-    nosz_abort("指数 `", index, "` 不在 alpha 表中。可用：",
+    nosz_abort(" `", index, "`  alpha ",
                paste(setdiff(colnames(a), "SampleID"), collapse = ", "))
   }
   d <- merge(a[, c("SampleID", index)], x$design[, c("SampleID", "Group")],
@@ -320,8 +320,8 @@ plot_alpha_ridge <- function(x, branch, index = "shannon", palette = "nosz") {
 
 #' Environment correlation heatmap (ggplot)
 #'
-#' 环境因子间 Spearman 相关矩阵热图（上三角 + 数值 + 显著性星号），
-#' ggplot 实现保证与包内其它图型风格统一、跨设备稳定。
+#'  Spearman  +  + 
+#' ggplot 
 #'
 #' @param x A `noszref` object.
 #' @param env Environmental table.
@@ -331,12 +331,12 @@ plot_alpha_ridge <- function(x, branch, index = "shannon", palette = "nosz") {
 plot_env_corrplot <- function(x, env, method = "spearman") {
   stopifnot(inherits(x, "noszref"))
   env <- prepare_env(x, env)
-  if (is.null(env)) nosz_abort("环境表不可用。")
+  if (is.null(env)) nosz_abort("")
   evars <- setdiff(colnames(env), "SampleID")
-  if (length(evars) < 2) nosz_abort("环境表至少需要两个数值变量。")
+  if (length(evars) < 2) nosz_abort("")
   n <- length(evars)
   cells <- expand.grid(Var1 = evars, Var2 = evars, stringsAsFactors = FALSE)
-  # 上三角（含对角线）：Var2 的位置序号 >= Var1
+  # Var2  >= Var1
   cells <- cells[match(cells$Var2, evars) >= match(cells$Var1, evars), , drop = FALSE]
   cells$rho <- NA_real_; cells$p <- NA_real_
   for (i in seq_len(nrow(cells))) {
@@ -368,8 +368,8 @@ plot_env_corrplot <- function(x, env, method = "spearman") {
 
 #' Bump chart of taxa rank changes across groups
 #'
-#' 排名变化图（bump chart）：Top 类群在各分组中的平均丰度排名随分组
-#' 排布的折线——展示"谁在哪个分组里登顶、谁跌落"。
+#' bump chartTop 
+#' ""
 #'
 #' @param x A `noszref` object.
 #' @param branch Branch name.
@@ -385,7 +385,7 @@ plot_taxa_bump <- function(x, branch, level = "genus", top_n = 10,
   m <- rel_abund(m)
   d <- x$design[x$design$SampleID %in% colnames(m), , drop = FALSE]
   gs <- unique(d$Group)
-  if (length(gs) < 2) nosz_abort("bump 图至少需要两个分组。")
+  if (length(gs) < 2) nosz_abort("bump ")
   gm <- sapply(gs, function(g) {
     ss <- intersect(d$SampleID[d$Group == g], colnames(m))
     rowMeans(m[, ss, drop = FALSE])

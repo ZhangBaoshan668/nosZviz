@@ -1,12 +1,12 @@
 # ---------------------------------------------------------------------------
-# 模块四：beta 多样性
+# beta 
 # ---------------------------------------------------------------------------
 
-# 取对称距离矩阵，样本顺序与 design 对齐
+#  design 
 beta_matrix <- function(x, branch, distance = "bray_curtis") {
   mats <- nosz_need(x, "beta", branch)
   if (is.null(mats[[distance]])) {
-    nosz_abort("分支 ", branch, " 没有距离矩阵 `", distance, "`。可用：",
+    nosz_abort(" ", branch, "  `", distance, "`",
                paste(names(mats), collapse = ", "))
   }
   m <- mats[[distance]]
@@ -17,7 +17,7 @@ beta_matrix <- function(x, branch, distance = "bray_curtis") {
   m[smp, smp, drop = FALSE]
 }
 
-# 取该距离矩阵对应的分组
+# 
 beta_design <- function(x, m) {
   d <- x$design[x$design$SampleID %in% rownames(m), , drop = FALSE]
   d <- d[match(rownames(m), d$SampleID), , drop = FALSE]
@@ -81,13 +81,13 @@ calc_permanova <- function(x, branch, distance = "bray_curtis",
         stringsAsFactors = FALSE)
     }
   }
-  if (length(out) == 0) nosz_abort("统计检验全部失败，请检查分组与距离矩阵。")
+  if (length(out) == 0) nosz_abort("")
   res <- do.call(rbind, out)
   res$Distance <- distance
   res
 }
 
-# 排序分析：PCoA / NMDS / PCA
+# PCoA / NMDS / PCA
 .ordination <- function(x, branch, method = c("pcoa", "nmds", "pca"),
                         distance = "bray_curtis") {
   method <- match.arg(method)
@@ -120,7 +120,7 @@ calc_permanova <- function(x, branch, distance = "bray_curtis",
   }
   fit <- try(vegan::metaMDS(d, k = 2, trymax = 200, autotransform = FALSE,
                             trace = FALSE, plot = FALSE), silent = TRUE)
-  if (inherits(fit, "try-error")) nosz_abort("NMDS 未能收敛，建议改用 PCoA。")
+  if (inherits(fit, "try-error")) nosz_abort("NMDS  PCoA")
   sc <- as.data.frame(fit$points[, 1:2, drop = FALSE])
   colnames(sc) <- c("Axis1", "Axis2")
   list(scores = sc, var = NA, method = "NMDS",
@@ -271,7 +271,7 @@ plot_beta_dendrogram <- function(x, branch, distance = "bray_curtis",
   d <- beta_design(x, m)
   hc <- stats::hclust(stats::as.dist(m), method = method)
   lay <- ggraph::create_layout(hc, layout = "dendrogram")
-  # 直接把分组挂到 layout 上，避免 merge 打乱行序
+  #  layout  merge 
   lay$Group <- d$Group[match(lay$label, as.character(d$SampleID))]
   cols <- group_palette(d$Group, palette)
   ggraph::ggraph(lay) +
@@ -303,7 +303,7 @@ plot_beta_dispersion <- function(x, branch, distance = "bray_curtis",
   stopifnot(inherits(x, "noszref"))
   m <- beta_matrix(x, branch, distance)
   d <- beta_design(x, m)
-  if (nlevels(d$Group) < 2) nosz_abort("需要至少两个分组才能计算 beta dispersion。")
+  if (nlevels(d$Group) < 2) nosz_abort(" beta dispersion")
   bd <- vegan::betadisper(stats::as.dist(m), d$Group)
   df <- data.frame(SampleID = names(bd$distances),
                    Distance = as.numeric(bd$distances),
@@ -343,7 +343,7 @@ plot_beta_panel <- function(x, branch,
   stopifnot(inherits(x, "noszref"))
   avail <- names(nosz_need(x, "beta", branch))
   distances <- intersect(distances, avail)
-  if (length(distances) == 0) nosz_abort("没有可用的距离矩阵。")
+  if (length(distances) == 0) nosz_abort("")
   plist <- lapply(distances, function(dd) {
     plot_ordination(x, branch, method = "pcoa", distance = dd,
                     permanova = FALSE, palette = palette) +
@@ -375,7 +375,7 @@ plot_sample_corr <- function(x, branch, method = "spearman", rarefied = TRUE,
   otu <- try(nosz_otu_matrix(x, branch, rarefied = rarefied), silent = TRUE)
   if (inherits(otu, "try-error")) otu <- nosz_otu_matrix(x, branch, rarefied = FALSE)
   otu <- otu[, colSums(otu) > 0, drop = FALSE]
-  if (ncol(otu) < 2) nosz_abort("样本数不足。")
+  if (ncol(otu) < 2) nosz_abort("")
   r <- stats::cor(otu, method = method)
   ord <- try(stats::hclust(stats::as.dist(1 - r))$order, silent = TRUE)
   if (!inherits(ord, "try-error")) r <- r[ord, ord]

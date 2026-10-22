@@ -25,6 +25,8 @@ plot_diff_ma(
 
 \item{method}{Differential test.}
 
+\item{padj_cut}{P-value cutoff}
+
 \item{label_n}{Number of taxa to label.}
 }
 \value{

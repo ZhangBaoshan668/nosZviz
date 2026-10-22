@@ -30,7 +30,7 @@ plot_ordination(
 \item{ellipse}{Logical, draw 95\% confidence ellipses (needs >= 3 samples
 per group).}
 
-\item{label}{Logical, label samples with \link{ggrepel}.}
+\item{label}{Logical, label samples with \link[ggrepel:ggrepel]{ggrepel}.}
 
 \item{permanova}{Logical, run PERMANOVA and annotate the subtitle.}
 

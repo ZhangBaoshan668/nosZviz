@@ -21,6 +21,6 @@ plot_taxa_bump(x, branch, level = "genus", top_n = 10, palette = "tableau")
 A ggplot object.
 }
 \description{
-排名变化图（bump chart）：Top 类群在各分组中的平均丰度排名随分组
-排布的折线——展示"谁在哪个分组里登顶、谁跌落"。
+bump chartTop
+""
 }

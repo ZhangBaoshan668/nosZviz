@@ -33,7 +33,8 @@ plot_taxa_env_network(
 A ggraph object.
 }
 \description{
-类群（行）与环境因子（列）的 Spearman 相关网络：|rho| 与显著性双重
-筛边，环境因子为方形节点、类群为圆形节点（按门着色、按丰度定大小），
-正负相关用边色区分——快速定位"哪些类群与哪些环境梯度耦合"。
+Spearman |rho|
+}
+\details{
+""
 }

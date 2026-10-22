@@ -1,5 +1,5 @@
 # ---------------------------------------------------------------------------
-# 模块五：差异丰度分析
+# 
 # ---------------------------------------------------------------------------
 
 #' Differential abundance between two groups
@@ -31,16 +31,16 @@ calc_diff_taxa <- function(x, branch, level = "genus", group1 = NULL,
   if (value == "relative") m <- rel_abund(m) * 100
   d <- x$design[x$design$SampleID %in% colnames(m), , drop = FALSE]
   grp <- unique(d$Group)
-  if (length(grp) < 2) nosz_abort("至少需要两个分组。")
+  if (length(grp) < 2) nosz_abort("")
   g1 <- group1 %||% grp[1]
   g2 <- group2 %||% grp[2]
   if (!all(c(g1, g2) %in% d$Group)) {
-    nosz_abort("分组名不存在。可用分组：", paste(grp, collapse = ", "))
+    nosz_abort("", paste(grp, collapse = ", "))
   }
   s1 <- d$SampleID[d$Group == g1]; s2 <- d$SampleID[d$Group == g2]
   m <- m[, c(s1, s2), drop = FALSE]
   m <- m[rowSums(m) > 0, , drop = FALSE]
-  if (nrow(m) == 0) nosz_abort("所选分组内没有可用的分类单元。")
+  if (nrow(m) == 0) nosz_abort("")
 
   prev <- rowMeans(m > 0)
   keep <- prev >= min_prevalence
@@ -115,7 +115,7 @@ calc_diff_taxa <- function(x, branch, level = "genus", group1 = NULL,
   out
 }
 
-# 内部：取差异表或现算
+# 
 diff_get <- function(x, res, branch, level, method, ...) {
   if (!is.null(res)) return(res)
   calc_diff_taxa(x, branch = branch, level = level, method = method, ...)
@@ -174,6 +174,7 @@ plot_diff_volcano <- function(x, res = NULL, branch = "nosZI", level = "genus",
 #' @inheritParams plot_diff_volcano
 #' @return A ggplot object.
 #' @export
+#' @param padj_cut P-value cutoff
 plot_diff_ma <- function(x, res = NULL, branch = "nosZI", level = "genus",
                          method = "wilcox", padj_cut = 0.05, label_n = 8) {
   stopifnot(inherits(x, "noszref"))
@@ -205,6 +206,7 @@ plot_diff_ma <- function(x, res = NULL, branch = "nosZI", level = "genus",
 #' @param show_ci Logical, draw 95% confidence intervals when available.
 #' @return A ggplot object.
 #' @export
+#' @param padj_cut P-value cutoff
 plot_diff_forest <- function(x, res = NULL, branch = "nosZI", level = "genus",
                              method = "t.test", padj_cut = 0.05, top_n = 15,
                              show_ci = TRUE) {
@@ -245,6 +247,7 @@ plot_diff_forest <- function(x, res = NULL, branch = "nosZI", level = "genus",
 #' @param width_ratio Relative widths of the left, centre and right panels.
 #' @return A patchwork object.
 #' @export
+#' @param padj_cut P-value cutoff
 plot_diff_stamp <- function(x, res = NULL, branch = "nosZI", level = "genus",
                             method = "t.test", padj_cut = 0.05, top_n = 12,
                             sort_by = c("difference", "p"), palette = "nosz",
@@ -265,7 +268,7 @@ plot_diff_stamp <- function(x, res = NULL, branch = "nosZI", level = "genus",
   sel$Taxon <- factor(sel$Taxon, levels = ord)
   cols <- group_palette(c(g[1], g[2]), palette)
 
-  # 各组均值的 95% 置信区间（t 分布），用于 STAMP 的双侧误差条
+  #  95% t  STAMP 
   m <- rel_abund(nosz_tax_matrix(x, branch, level)) * 100
   s1 <- intersect(x$design$SampleID[x$design$Group == g[1]], colnames(m))
   s2 <- intersect(x$design$SampleID[x$design$Group == g[2]], colnames(m))
@@ -331,6 +334,7 @@ plot_diff_stamp <- function(x, res = NULL, branch = "nosZI", level = "genus",
 #' @param show_stars Logical, annotate tiles with significance stars.
 #' @return A `pheatmap` object.
 #' @export
+#' @param padj_cut P-value cutoff
 plot_diff_heatmap <- function(x, res = NULL, branch = "nosZI", level = "genus",
                               method = "wilcox", padj_cut = 0.05, top_n = 20,
                               scale = "row", show_stars = TRUE) {
@@ -341,7 +345,7 @@ plot_diff_heatmap <- function(x, res = NULL, branch = "nosZI", level = "genus",
   sel <- head(sel[order(sel$padj), , drop = FALSE], top_n)
   m <- nosz_tax_matrix(x, branch, level, value = "rpkm")
   m <- m[intersect(sel$Taxon, rownames(m)), , drop = FALSE]
-  if (nrow(m) == 0) nosz_abort("差异分类单元不在 RPKM 表中。")
+  if (nrow(m) == 0) nosz_abort(" RPKM ")
   m <- log10(m + 1)
   m <- m[, order_samples(colnames(m), x$design), drop = FALSE]
   ann <- x$design[x$design$SampleID %in% colnames(m), , drop = FALSE]

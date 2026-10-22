@@ -9,13 +9,13 @@ plot_chord(x, value = c("rpkm", "relative"))
 \arguments{
 \item{x}{A \code{noszref} object.}
 
-\item{value}{\code{"rpkm"} 或 \code{"relative"}（分组内占比）。}
+\item{value}{\code{"rpkm"}  \code{"relative"}}
 }
 \value{
-An object of class \code{nosz_chord}（print 时即时绘制弦图）.
+An object of class \code{nosz_chord}print .
 }
 \description{
-circlize 弦图：分组（扇区）与 nosZ 分支之间的丰度"流向"，每条弦的
-宽度正比于该分组下该支系的平均 RPKM 占比——一眼读出"哪群样本把
-丰度贡献给了哪个支系"。
+circlize  nosZ ""
+RPKM "
+"
 }

@@ -27,6 +27,8 @@ plot_diff_heatmap(
 
 \item{method}{Differential test.}
 
+\item{padj_cut}{P-value cutoff}
+
 \item{top_n}{Number of differential taxa.}
 
 \item{scale}{\code{"row"} or \code{"none"}.}

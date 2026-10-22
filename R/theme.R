@@ -1,5 +1,5 @@
 # ---------------------------------------------------------------------------
-# 统一主题、调色板与导出
+# 
 # ---------------------------------------------------------------------------
 
 #' Built-in colour palettes of nosZviz
@@ -116,7 +116,7 @@ scale_colour_nosz <- function(palette = "nosz", ...) {
   ggplot2::discrete_scale("colour", pal = function(n) nosz_pal(n, palette), ...)
 }
 
-# ggplot2 4.x 把 colour 拆成 colour/color 两个 aesthetic，这里补一个别名
+# ggplot2 4.x  colour  colour/color  aesthetic
 #' @rdname scale_colour_nosz
 #' @export
 scale_color_nosz <- scale_colour_nosz
@@ -142,7 +142,7 @@ nosz_save <- function(plot, file, width = 89, height = 59,
   written <- character(0)
   for (fmt in formats) {
     path <- paste0(file, ".", fmt)
-    # 绘制并保证设备一定被关闭（即使 print 出错），避免污染后续绘图
+    #  print 
     ok <- tryCatch({
       if (fmt == "pdf") {
         grDevices::pdf(path, width = width / 25.4, height = height / 25.4,
@@ -178,12 +178,12 @@ nosz_save <- function(plot, file, width = 89, height = 59,
     if (isTRUE(ok)) written <- c(written, path)
   }
   if (length(written) == 0 && length(formats) > 0) {
-    nosz_abort("图保存失败：", basename(file))
+    nosz_abort("", basename(file))
   }
   invisible(written)
 }
 
-# 配色便捷函数：按样本所属分组着色
+# 
 sample_colours <- function(design, palette = "nosz", group_col = "Group") {
   if (is.null(design)) return(NULL)
   g <- design[[group_col]]

@@ -1,16 +1,16 @@
-# ---------------------------------------------------------------------------
-# 模块九：环境因子关联与进阶分析（NosZRef 内置可视化未覆盖）
-#  - 约束排序 RDA / CCA / db-RDA（环境因子驱动支系类群分异）
-#  - envfit 环境向量叠加（无约束 PCoA 上）
-#  - LEfSe 风格差异分析（Kruskal-Wallis + Wilcoxon + 效应量）
-#  - 指示种分析（IndVal + 置换检验）
-#  - 组间共享 OTU UpSet
-#  - alpha 指数 × 环境因子相关热图
-#  - 类群-环境因子相关网络
-#  - 分类学树状图（无树文件时的替代：丰度谱系 UPGMA 环形树）
-# ---------------------------------------------------------------------------
+#'
+# NosZRef 
+#  -  RDA / CCA / db-RDA
+#  - envfit  PCoA 
+#  - LEfSe Kruskal-Wallis + Wilcoxon + 
+#  - IndVal + 
+#  -  OTU UpSet
+#  - alpha   
+#  - -
+#  -  UPGMA 
+#'
 
-# 环境表清洗：匹配样本、仅保留数值列、剔除零方差列
+# 
 prepare_env <- function(x, env) {
   if (is.null(env)) return(NULL)
   if (is.character(env)) {
@@ -36,18 +36,18 @@ prepare_env <- function(x, env) {
 
 #' Constrained ordination of nosZ taxa with environmental variables
 #'
-#' nosZ 特化的约束排序（RDA / CCA / db-RDA）：以支系内分类单元丰度为
-#' 响应矩阵、环境因子为解释变量，封装 vegan 的 rda()/cca()/capscale()，
-#' 自动做 Hellinger 转换、剔除零方差变量，并在副标题标注约束轴解释率与
-#' 置换检验 P 值。排序图回答：**什么环境条件驱动了该支系类群的分异？**
+#' nosZ RDA / CCA / db-RDA
+#'  vegan  rda()/cca()/capscale()
+#'  Hellinger 
+#'  P ****
 #'
 #' @param x A `noszref` object.
 #' @param branch Branch name (one branch at a time).
 #' @param level Taxonomic level used as response matrix.
 #' @param env Environmental data: data frame with a `SampleID` column and
 #'   numeric variables, or path to such a table.
-#' @param method `"RDA"`（Hellinger 转换后的冗余分析）, `"CCA"` 或
-#'   `"dbRDA"`（基于距离的冗余分析）.
+#' @param method `"RDA"`Hellinger , `"CCA"` 
+#'   `"dbRDA"`.
 #' @param top_n Top taxa (by mean abundance) entering the model.
 #' @param dist Distance for dbRDA, e.g. `"bray"`.
 #' @param permutations Permutations for the model test.
@@ -64,15 +64,15 @@ plot_ordination_constrained <- function(x, branch, level = "genus", env,
   stopifnot(inherits(x, "noszref"))
   method <- match.arg(method)
   env <- prepare_env(x, env)
-  if (is.null(env)) nosz_abort("环境表不可用：需要含 SampleID 列与至少一个非零方差数值列。")
+  if (is.null(env)) nosz_abort(" SampleID ")
   m <- nosz_tax_matrix(x, branch, level, value = "rpkm")
   smp <- intersect(colnames(m), env$SampleID)
-  if (length(smp) < 4) nosz_abort("样本与环境表的重叠少于 4 个，无法做约束排序。")
+  if (length(smp) < 4) nosz_abort(" 4 ")
   m <- m[, smp, drop = FALSE]
   env <- env[match(smp, env$SampleID), , drop = FALSE]
   rownames(env) <- env$SampleID
   env$SampleID <- NULL
-  # top_n 分类单元进入模型；转置为 样本 x 类群（vegan 要求行=样点）
+  # top_n   x vegan =
   if (nrow(m) > top_n) m <- m[order(rowMeans(m), decreasing = TRUE)[seq_len(top_n)], , drop = FALSE]
   ms <- t(m)
 
@@ -97,7 +97,7 @@ plot_ordination_constrained <- function(x, branch, level = "genus", env,
   sc <- vegan::scores(ord, display = c("sites", "species", "biplot"),
                       choices = 1:2, scaling = 2)
   si_m <- sc$sites
-  # 残差秩为 0 时可能只有 1 个轴：补第二轴为 0 以便绘图
+  #  0  1  0 
   if (is.null(si_m) || ncol(si_m) < 2) {
     ax2 <- rep(0, nrow(si_m))
     si_m <- cbind(si_m, ax2)
@@ -128,7 +128,7 @@ plot_ordination_constrained <- function(x, branch, level = "genus", env,
                   subtitle = paste(tot, pv, sep = "; ")) +
     theme_nosz()
 
-  # 环境因子箭头（双序图分数，缩放到数据范围 0.8；vegan 返回键名为 biplot）
+  #  0.8vegan  biplot
   bp <- as.data.frame(sc$biplot)
   if (!is.null(bp) && nrow(bp) > 0 && ncol(bp) >= 2) {
     r <- max(abs(c(si[[xcol]], si[[ycol]])))
@@ -146,7 +146,7 @@ plot_ordination_constrained <- function(x, branch, level = "genus", env,
                                size = 2.1, colour = "grey15", seed = 1,
                                inherit.aes = FALSE, show.legend = FALSE)
   }
-  # 高载荷类群标签
+  # 
   if (show_species && !is.null(sc$species) && nrow(sc$species) >= 1) {
     sp <- as.data.frame(sc$species)
     sp$name <- rownames(sp)
@@ -168,8 +168,8 @@ plot_ordination_constrained <- function(x, branch, level = "genus", env,
 
 #' Environmental vector fitting on an existing PCoA
 #'
-#' 在无约束 PCoA 上叠加 `vegan::envfit` 拟合的环境因子向量，
-#' 副标题标注每个变量的 R2 与显著性，回答"群落分异沿哪些环境梯度展开"。
+#'  PCoA  `vegan::envfit` 
+#'  R2 ""
 #'
 #' @inheritParams plot_ordination_constrained
 #' @param dist Beta distance key from NosZRef output, e.g. `"bray_curtis"`.
@@ -179,11 +179,11 @@ plot_envfit_ordination <- function(x, branch, env, dist = NULL,
                                    palette = "nosz", permutations = 999) {
   stopifnot(inherits(x, "noszref"))
   env <- prepare_env(x, env)
-  if (is.null(env)) nosz_abort("环境表不可用。")
+  if (is.null(env)) nosz_abort("")
   beta <- nosz_need(x, "beta", branch)
   if (is.null(dist)) dist <- grep("bray", names(beta), value = TRUE)[1] %||% names(beta)[1]
   m <- beta[[dist]]
-  if (is.null(m)) nosz_abort("距离矩阵 `", dist, "` 不存在。")
+  if (is.null(m)) nosz_abort(" `", dist, "` ")
   smp <- intersect(rownames(m), env$SampleID)
   m <- m[smp, smp, drop = FALSE]
   env <- env[match(smp, env$SampleID), , drop = FALSE]
@@ -235,16 +235,16 @@ plot_envfit_ordination <- function(x, branch, env, dist = NULL,
   p
 }
 
-# ---------------------------------------------------------------------------
-# LEfSe 风格差异分析
-# ---------------------------------------------------------------------------
+#'
+# LEfSe 
+#'
 
 #' LEfSe-style differential analysis
 #'
-#' 简化版 LEfSe 流程（Kruskal-Wallis 组间筛选 -> 组内两两 Wilcoxon 精简 ->
-#' 效应量以两组相对丰度均值之比的 log10 计）。效应量方向指向均值最高的
-#' 分组。注意：这是 LEfSe 的近似实现，投稿时请在方法中写明
-#' "LEfSe-style analysis implemented in nosZviz"。
+#'  LEfSe Kruskal-Wallis  ->  Wilcoxon  ->
+#'  log10 
+#'  LEfSe 
+#' "LEfSe-style analysis implemented in nosZviz"
 #'
 #' @param x A `noszref` object.
 #' @param branch Branch name.
@@ -264,14 +264,14 @@ calc_lefse <- function(x, branch, level = "genus", kw_p = 0.05,
   m <- m[, d$SampleID, drop = FALSE]
   m <- m[rowMeans(m > 0) >= 0.2, , drop = FALSE]
   gs <- unique(d$Group)
-  if (length(gs) < 2) nosz_abort("LEfSe 至少需要两个分组。")
+  if (length(gs) < 2) nosz_abort("LEfSe ")
   out <- list()
   for (i in seq_len(nrow(m))) {
     v <- m[i, ]
     kw <- suppressWarnings(stats::kruskal.test(v, factor(d$Group)))
     if (is.na(kw$p.value) || kw$p.value >= kw_p) next
     gm <- tapply(v, d$Group, mean)
-    # 均值最高组 vs 其余合并的两两检验
+    #  vs 
     best <- names(sort(gm, decreasing = TRUE))[1]
     rest <- setdiff(gs, best)
     ok <- all(vapply(rest, function(g) {
@@ -299,8 +299,8 @@ calc_lefse <- function(x, branch, level = "genus", kw_p = 0.05,
 
 #' LEfSe-style effect size bar plot
 #'
-#' 横向条形图展示差异类群的效应量，条形按优势分组着色——
-#' LEfSe 的标准呈现方式（Nature 系期刊 nosZ 论文常用）。
+#' 
+#' LEfSe Nature  nosZ 
 #'
 #' @param x A `noszref` object.
 #' @param res Optional result of [calc_lefse()].
@@ -310,7 +310,7 @@ calc_lefse <- function(x, branch, level = "genus", kw_p = 0.05,
 plot_lefse <- function(x, res = NULL, ...) {
   if (is.null(res)) res <- calc_lefse(x, ...)
   if (nrow(res) == 0) {
-    nosz_abort("没有通过 LEfSe 阈值的类群；可放宽 kw_p / wilcox_p / lda_cut。")
+    nosz_abort(" LEfSe  kw_p / wilcox_p / lda_cut")
   }
   res <- res[order(res$LDA), , drop = FALSE]
   res$Taxon <- factor(res$Taxon, levels = res$Taxon)
@@ -325,15 +325,15 @@ plot_lefse <- function(x, res = NULL, ...) {
     theme_nosz(legend_position = "top")
 }
 
-# ---------------------------------------------------------------------------
-# 指示种分析（IndVal + 置换检验）
-# ---------------------------------------------------------------------------
+#'
+# IndVal + 
+#'
 
 #' Indicator taxa analysis (IndVal with permutations)
 #'
-#' 经典 IndVal 指数（特异性 A × 忠实度 B）+ 组标签置换检验，
-#' 找出"专属"某分组的高保真类群。比单纯差异检验更能回答
-#' "哪个类群可以作为该生境的 biosignature"。
+#'  IndVal  A   B+ 
+#' ""
+#' " biosignature"
 #'
 #' @param x A `noszref` object.
 #' @param branch Branch name.
@@ -353,10 +353,10 @@ calc_indicator <- function(x, branch, level = "genus", nperm = 999,
   m <- m[, d$SampleID, drop = FALSE]
   m <- m[rowSums(m) > 0, , drop = FALSE]
   gs <- unique(d$Group)
-  if (length(gs) < 2) nosz_abort("指示种分析至少需要两个分组。")
+  if (length(gs) < 2) nosz_abort("")
 
   indval_one <- function(mm, grp) {
-    # A: 组均值 / 各组均值之和；B: 组内出现频率
+    # A:  / B: 
     A <- sapply(gs, function(g) rowMeans(mm[, grp == g, drop = FALSE]))
     A <- A / rowSums(A)
     B <- sapply(gs, function(g) rowMeans(mm[, grp == g, drop = FALSE] > 0))
@@ -364,7 +364,7 @@ calc_indicator <- function(x, branch, level = "genus", nperm = 999,
   }
   grp0 <- d$Group
   obs <- indval_one(m, grp0)
-  # 置换检验：两组且排列总数不大时完全枚举（含恒等排列），否则随机置换
+  # 
   n <- length(grp0)
   n1 <- sum(grp0 == gs[1])
   if (length(gs) == 2 && choose(n, n1) <= 5000) {
@@ -383,7 +383,7 @@ calc_indicator <- function(x, branch, level = "genus", nperm = 999,
     }
     pv <- (cnt + 1) / (nperm + 1)
   }
-  # A：特异性（组均值 / 各组均值之和）；B：忠实度（组内出现频率）
+  # A / B
   Am <- sapply(gs, function(g) rowMeans(m[, grp0 == g, drop = FALSE]))
   Am <- Am / rowSums(Am)
   Bm <- sapply(gs, function(g) rowMeans(m[, grp0 == g, drop = FALSE] > 0))
@@ -416,10 +416,10 @@ plot_indicator <- function(x, res = NULL, padj = 0.05, min_indval = 0.25,
   if (is.null(res)) res <- calc_indicator(x, ...)
   sig <- res[res$padj < padj & res$IndVal >= min_indval, , drop = FALSE]
   if (nrow(sig) == 0) {
-    # 小样本数据可能无显著指示种：降级展示 IndVal 最高的类群并注明
+    #  IndVal 
     sig <- utils::head(res[order(-res$IndVal), ], top_n)
     sig <- sig[sig$IndVal > 0, , drop = FALSE]
-    if (nrow(sig) == 0) nosz_abort("指示种表为空。")
+    if (nrow(sig) == 0) nosz_abort("")
     note <- "no significant indicators at given cut; showing top IndVal taxa"
   } else {
     sig <- utils::head(sig[order(-sig$IndVal), ], top_n)
@@ -445,18 +445,18 @@ plot_indicator <- function(x, res = NULL, padj = 0.05, min_indval = 0.25,
     theme_nosz(legend_position = "right")
 }
 
-# ---------------------------------------------------------------------------
-# 组间共享 OTU / 类群
-# ---------------------------------------------------------------------------
+#'
+#  OTU / 
+#'
 
 #' Shared OTU / taxa across groups (UpSet)
 #'
-#' 组间 OTU（或任意层级类群）存在/缺失的集合交叉，UpSet 呈现——
-#' 回答"各分组的核心 nosZ 类群与特有类群各有多少"。
+#'  OTU/UpSet 
+#' " nosZ "
 #'
 #' @param x A `noszref` object.
 #' @param branch Branch name.
-#' @param level `"otu"` 或分类层级（用类群存在性代替 OTU）。
+#' @param level `"otu"`  OTU
 #' @return An UpSetR plot object.
 #' @export
 plot_group_upset <- function(x, branch, level = "otu") {
@@ -468,16 +468,16 @@ plot_group_upset <- function(x, branch, level = "otu") {
   }
   d <- x$design[x$design$SampleID %in% colnames(m), , drop = FALSE]
   gs <- unique(d$Group)
-  if (length(gs) < 2) nosz_abort("至少需要两个分组。")
+  if (length(gs) < 2) nosz_abort("")
   bin <- sapply(gs, function(g) {
     ss <- intersect(d$SampleID[d$Group == g], colnames(m))
     as.integer(rowSums(m[, ss, drop = FALSE] > 0) > 0)
   })
-  # 单 OTU 时 sapply 退化为向量，兜底成矩阵
+  #  OTU  sapply 
   if (is.null(dim(bin))) bin <- matrix(bin, nrow = nrow(m), ncol = length(gs))
   colnames(bin) <- gs
   bin <- as.data.frame(bin[apply(bin, 1, sum) > 0, , drop = FALSE])
-  if (nrow(bin) == 0) nosz_abort("没有可比较的存在/缺失模式。")
+  if (nrow(bin) == 0) nosz_abort("/")
   UpSetR::upset(bin, sets = gs, sets.bar.color = nosz_pal(length(gs), "nosz"),
                 mainbar.y.label = "Shared / unique taxa (intersection size)",
                 sets.x.label = "Taxa per group",
@@ -485,14 +485,14 @@ plot_group_upset <- function(x, branch, level = "otu") {
                 order.by = "freq")
 }
 
-# ---------------------------------------------------------------------------
-# alpha x 环境因子相关热图
-# ---------------------------------------------------------------------------
+#'
+# alpha x 
+#'
 
 #' Alpha diversity vs environmental correlation heatmap
 #'
-#' 六种 alpha 指数与环境因子的 Spearman 相关矩阵（带显著性星号），
-#' 是 alpha 多样性与理化性质关联的标准呈现。
+#'  alpha  Spearman 
+#'  alpha 
 #'
 #' @param x A `noszref` object.
 #' @param branch Branch name.
@@ -503,7 +503,7 @@ plot_group_upset <- function(x, branch, level = "otu") {
 plot_alpha_env_corr <- function(x, branch, env, method = "spearman") {
   stopifnot(inherits(x, "noszref"))
   env <- prepare_env(x, env)
-  if (is.null(env)) nosz_abort("环境表不可用。")
+  if (is.null(env)) nosz_abort("")
   a <- nosz_need(x, "alpha", branch)
   a <- a[a$SampleID %in% env$SampleID, , drop = FALSE]
   env <- env[match(a$SampleID, env$SampleID), , drop = FALSE]
@@ -534,15 +534,15 @@ plot_alpha_env_corr <- function(x, branch, env, method = "spearman") {
     theme_nosz(border = FALSE, x_angle = 30)
 }
 
-# ---------------------------------------------------------------------------
-# 类群-环境因子相关网络
-# ---------------------------------------------------------------------------
+#'
+# -
+#'
 
 #' Taxa-environment correlation network
 #'
-#' 类群（行）与环境因子（列）的 Spearman 相关网络：|rho| 与显著性双重
-#' 筛边，环境因子为方形节点、类群为圆形节点（按门着色、按丰度定大小），
-#' 正负相关用边色区分——快速定位"哪些类群与哪些环境梯度耦合"。
+#'  Spearman |rho| 
+#' 
+#' ""
 #'
 #' @param x A `noszref` object.
 #' @param branch Branch name.
@@ -557,7 +557,7 @@ plot_taxa_env_network <- function(x, branch, env, level = "genus", top_n = 20,
                                   r_cut = 0.6, p_cut = 0.05) {
   stopifnot(inherits(x, "noszref"))
   env <- prepare_env(x, env)
-  if (is.null(env)) nosz_abort("环境表不可用。")
+  if (is.null(env)) nosz_abort("")
   m <- nosz_tax_matrix(x, branch, level, value = "rpkm")
   m <- rel_abund(m)
   smp <- intersect(colnames(m), env$SampleID)
@@ -582,9 +582,9 @@ plot_taxa_env_network <- function(x, branch, env, level = "genus", top_n = 20,
   ed <- do.call(rbind, edges)
   ed$padj <- stats::p.adjust(ed$p, "BH")
   ed <- ed[abs(ed$rho) >= r_cut & ed$p < p_cut, , drop = FALSE]
-  if (nrow(ed) == 0) nosz_abort("没有通过 r_cut / p_cut 的类群-环境相关；可降低 r_cut 或放宽 p_cut。")
+  if (nrow(ed) == 0) nosz_abort(" r_cut / p_cut - r_cut  p_cut")
 
-  # 门水平着色映射
+  # 
   phy_map <- taxa_phylum_map(x, branch, level)
   nodes <- data.frame(
     name = c(rownames(m), evars),
@@ -595,7 +595,7 @@ plot_taxa_env_network <- function(x, branch, env, level = "genus", top_n = 20,
   nodes$Phylum[nodes$type == "Env"] <- "Environment"
   nodes$Size <- c(rowMeans(m) * 100, rep(max(rowMeans(m)) * 100, length(evars)))
 
-  # 边属性 rho/p 必须随图对象一起传入，edge aes 才能取到
+  #  rho/p edge aes 
   g <- igraph::graph_from_data_frame(ed[, c("from", "to", "rho", "p")],
                                      directed = FALSE, vertices = nodes)
   set.seed(3)
@@ -624,25 +624,25 @@ plot_taxa_env_network <- function(x, branch, env, level = "genus", top_n = 20,
     theme_nosz(border = FALSE)
 }
 
-# 类群 -> 门 映射（从 BLAST 长表 lineage 聚合）
+#  ->   BLAST  lineage 
 taxa_phylum_map <- function(x, branch, level = "genus") {
   tl <- try(nosz_need(x, "tax_long", branch), silent = TRUE)
   if (inherits(tl, "try-error") || is.null(tl)) return(stats::setNames(rep(NA_character_, 100), NULL)[0])
   ll <- tax_parse(tl$lineage)
-  # OTU/类群名与 lineage 的对应：qseqid 形如 SampleID_OTUID，lineage 末位为种
-  # 用 lineage 中 g_ / f_ 等名字做名字匹配成本高；这里按频率取最常见门
+  # OTU/ lineage qseqid  SampleID_OTUIDlineage 
+  #  lineage  g_ / f_ 
   ph <- ll$Phylum
   ph[is.na(ph)] <- "Unknown"
-  # 长表中无法直接得到 OTU->门 的键（qseqid 与分类矩阵行名不一致时），
-  # 退化为按门频率分配：对每个类群名在 lineage 各字段中模糊匹配
+  #  OTU-> qseqid 
+  #  lineage 
   taxa <- rownames(nosz_tax_matrix(x, branch, level, value = "rpkm"))
-  # 尝试直接从各层级矩阵建立映射：类群在各门矩阵中的对应关系未知，
-  # 采用启发式：该类群名若出现在某门的 genus 名单中（长表 lineage 解析）
+  # 
+  #  genus  lineage 
   gl <- ll$Genus
   out <- vapply(taxa, function(t) {
     hit <- which(!is.na(gl) & gl == t)
     if (length(hit) == 0) {
-      # 模糊：包含关系
+      # 
       hit <- which(!is.na(gl) & grepl(t, gl, fixed = TRUE))
     }
     if (length(hit) == 0) return(NA_character_)
@@ -651,16 +651,12 @@ taxa_phylum_map <- function(x, branch, level = "genus") {
   stats::setNames(out, taxa)
 }
 
-# ---------------------------------------------------------------------------
-# 分类学树状图（丰度谱系 UPGMA，无需树文件的替代方案）
-# ---------------------------------------------------------------------------
-
+# UPGMA clustering section
 #' Taxa abundance-profile dendrogram
 #'
-#' 无系统发育树文件时的替代方案：以类群跨样本丰度谱的相似性
-#' （Spearman 相关距离）做 UPGMA 聚类，环形布局；叶节点大小映射平均
-#' 相对丰度、颜色映射所属门，可直接读出"同涨同落"的类群模块。
-#' 注意：这是**丰度谱系树**而非系统发育树，图注务必写明。
+#' Spearman  UPGMA 
+#' ""
+#'
 #'
 #' @param x A `noszref` object.
 #' @param branch Branch name.
@@ -676,7 +672,7 @@ plot_tax_dendrogram <- function(x, branch, level = "genus", top_n = 40,
   m <- nosz_tax_matrix(x, branch, level, value = "rpkm")
   m <- rel_abund(m)
   if (nrow(m) > top_n) m <- m[order(rowMeans(m), decreasing = TRUE)[seq_len(top_n)], , drop = FALSE]
-  if (nrow(m) < 4) nosz_abort("类群数量过少（<4），无法建树。")
+  if (nrow(m) < 4) nosz_abort("<4")
   cc <- suppressWarnings(stats::cor(t(m), method = "spearman"))
   cc[is.na(cc)] <- 0
   D <- stats::as.dist(1 - cc)

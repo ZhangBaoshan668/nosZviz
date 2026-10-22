@@ -9,6 +9,9 @@
 #' @importFrom dplyr %>% .data
 #' @importFrom magrittr %>%
 #' @importFrom rlang .data
+#' @importFrom utils head
+#' @importFrom stats na.omit
+#' @importFrom grDevices colorRampPalette
 "_PACKAGE"
 
 utils::globalVariables(c(".", "Abundance", "Branch", "Combo", "Degree",
@@ -23,38 +26,38 @@ utils::globalVariables(c(".", "Abundance", "Branch", "Combo", "Degree",
                          "ymax", "ymin"))
 
 # ---------------------------------------------------------------------------
-# 小工具：默认值、报错、静默读取
+# 
 # ---------------------------------------------------------------------------
 
 `%||%` <- function(x, y) if (is.null(x)) y else x
 
-# 统一风格的报错
+# 
 nosz_abort <- function(...) {
   stop(paste0(...), call. = FALSE)
 }
 
-# 统一风格的信息输出
+# 
 nosz_info <- function(...) {
   message(paste0(...))
 }
 
-# 判断某个分支的某个结果是否存在，不存在时给出清晰提示
+# 
 nosz_need <- function(obj, what, branch = NULL) {
   x <- obj[[what]]
   if (is.null(branch)) {
     if (is.null(x)) {
-      nosz_abort("NosZRef 结果中缺少 `", what, "`（可能该步骤未完成）。")
+      nosz_abort("NosZRef  `", what, "`")
     }
     return(x)
   }
   if (is.null(x) || is.null(x[[branch]])) {
-    nosz_abort("NosZRef 结果中缺少分支 `", branch, "` 的 `", what,
-               "`。可用分支：", paste(obj$branches, collapse = ", "))
+    nosz_abort("NosZRef  `", branch, "`  `", what,
+               "`", paste(obj$branches, collapse = ", "))
   }
   x[[branch]]
 }
 
-# 读取分隔符文本时容忍空文件与 BOM
+#  BOM
 read_delim_safe <- function(file, delim = "\t", ...) {
   if (is.null(file) || !file.exists(file)) return(NULL)
   if (file.info(file)$size == 0) return(NULL)
@@ -67,7 +70,7 @@ read_delim_safe <- function(file, delim = "\t", ...) {
   as.data.frame(out, check.names = FALSE, stringsAsFactors = FALSE)
 }
 
-# 数据框 -> 数值矩阵（第一列作行名）
+#  -> 
 df_to_matrix <- function(df, id_col = 1) {
   if (is.null(df) || nrow(df) == 0) return(NULL)
   ids <- as.character(df[[id_col]])
@@ -80,7 +83,7 @@ df_to_matrix <- function(df, id_col = 1) {
   m
 }
 
-# 长表 -> 宽矩阵（taxon x sample）
+#  -> taxon x sample
 long_to_matrix <- function(df, tax_col, sample_col, value_col) {
   if (is.null(df) || nrow(df) == 0) return(NULL)
   df <- df[, c(tax_col, sample_col, value_col)]
@@ -92,7 +95,7 @@ long_to_matrix <- function(df, tax_col, sample_col, value_col) {
          dimnames = list(rownames(out), colnames(out)))
 }
 
-# 矩阵 -> 长表，并接上分组信息
+#  -> 
 matrix_to_long <- function(mat, design, group_col = "Group") {
   if (is.null(mat) || nrow(mat) == 0) return(NULL)
   df <- data.frame(
@@ -105,7 +108,7 @@ matrix_to_long <- function(mat, design, group_col = "Group") {
   df
 }
 
-# 行标准化（z-score），用于热图
+# z-score
 zscore_rows <- function(mat) {
   if (is.null(mat) || nrow(mat) == 0) return(mat)
   z <- t(apply(mat, 1, function(v) {
@@ -117,14 +120,14 @@ zscore_rows <- function(mat) {
   z
 }
 
-# 相对丰度（列内归一，0-1）
+# 0-1
 rel_abund <- function(mat) {
   cs <- colSums(mat, na.rm = TRUE)
   cs[cs == 0] <- 1
   sweep(mat, 2, cs, "/")
 }
 
-# 合并低丰度分类单元为 "Other"
+#  "Other"
 collapse_taxa <- function(mat, top_n = 10, by = "mean") {
   if (is.null(mat) || nrow(mat) == 0) return(mat)
   if (nrow(mat) <= top_n) return(mat)
@@ -139,7 +142,7 @@ collapse_taxa <- function(mat, top_n = 10, by = "mean") {
   out[order(rowSums(out), decreasing = TRUE), , drop = FALSE]
 }
 
-# 解析 "d_Bacteria;p_Pseudomonadota;..." 形式的分类字符串
+#  "d_Bacteria;p_Pseudomonadota;..." 
 tax_parse <- function(x, prefix = c("d", "p", "c", "o", "f", "g", "s")) {
   x <- as.character(x)
   n <- length(x)
@@ -156,11 +159,11 @@ tax_parse <- function(x, prefix = c("d", "p", "c", "o", "f", "g", "s")) {
     Order = get_rank("o"), Family = get_rank("f"), Genus = get_rank("g"),
     Species = get_rank("s"), stringsAsFactors = FALSE
   )
-  # 有些版本使用 k__ 前缀，统一到 Kingdom
+  #  k__  Kingdom
   out
 }
 
-# 组间配色：优先使用手工调色板，超出则自动扩展
+# 
 group_palette <- function(groups, palette = "nosz") {
   groups <- unique(as.character(groups))
   n <- length(groups)
@@ -168,20 +171,20 @@ group_palette <- function(groups, palette = "nosz") {
   stats::setNames(pal, groups)
 }
 
-# 取第一个非空值
+# 
 first_nonempty <- function(x) {
   x <- x[!is.na(x) & nzchar(as.character(x))]
   if (length(x) == 0) NA_character_ else x[1]
 }
 
-# 安全的 p 值格式化
+#  p 
 fmt_p <- function(p, digits = 3) {
   ifelse(is.na(p), "NA",
          ifelse(p < 1e-4, formatC(p, format = "e", digits = 1),
                 formatC(p, format = "f", digits = digits)))
 }
 
-# 星号标记
+# 
 p_star <- function(p) {
   ifelse(is.na(p), "",
          ifelse(p < 0.001, "***",
@@ -189,28 +192,28 @@ p_star <- function(p) {
 }
 
 # ---------------------------------------------------------------------
-# UTF-8 文本写出工具（解决中文乱码）
+# UTF-8 
 #
-# 背景：Windows 下若 R 的 locale 不是 UTF-8（例如 locale = C，或
-# "Setting LC_CTYPE=C.UTF-8 failed"），R 会把 UTF-8 源码文本按 latin1
-# 解析：**字节仍是合法 UTF-8，但被错标成 "latin1"**。
-# 此时调用 enc2utf8() 会把每个字节再编码一次，中文就变成
-# "Ã¥Â¯Ã¨Â§â€ ..." 这样的乱码（index.html 图库曾出现此问题）。
+# Windows  R  locale  UTF-8 locale = C
+# "Setting LC_CTYPE=C.UTF-8 failed"R  UTF-8  latin1
+# ** UTF-8 "latin1"**
+#  enc2utf8() 
+# " ..." index.html 
 #
-# 对策：先判断字节本身是否为合法 UTF-8——是则只纠正编码标记、不动字节；
-# 否则（确实是本地编码如 GBK）再做正常转换。最后用二进制连接写出，
-# 彻底绕开 locale 带来的隐式转换。
+#  UTF-8
+#  GBK
+#  locale 
 # ---------------------------------------------------------------------
 
-# 把字符向量规范成「标记为 UTF-8」的形态
+#  UTF-8
 nosz_utf8 <- function(x) {
   x <- as.character(x)
   if (length(x) == 0) return(x)
   if (all(validUTF8(x))) {
-    # 字节已是合法 UTF-8，只是标记错了：仅纠正标记
+    #  UTF-8
     Encoding(x) <- "UTF-8"
   } else {
-    # 真正的本地编码（GBK/GB18030 等）走正常转换
+    # GBK/GB18030 
     x <- enc2utf8(x)
     ok <- validUTF8(x)
     if (any(ok)) Encoding(x[ok]) <- "UTF-8"
@@ -218,16 +221,16 @@ nosz_utf8 <- function(x) {
   x
 }
 
-# 以 UTF-8 字节写出文本文件（不做任何 locale 转换）
+#  UTF-8  locale 
 nosz_write_utf8 <- function(x, path, ...) {
-  con <- file(path, open = "wb")          # 二进制连接：字节原样落盘
+  con <- file(path, open = "wb")          # 
   on.exit(close(con), add = TRUE)
   writeLines(nosz_utf8(x), con, useBytes = TRUE, ...)
   invisible(path)
 }
 
 
-# 让每个分支的样本顺序与 design 一致
+#  design 
 order_samples <- function(samples, design) {
   if (is.null(design)) return(samples)
   d <- design$SampleID[design$SampleID %in% samples]

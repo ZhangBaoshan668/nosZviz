@@ -31,8 +31,7 @@ plot_mantel_env(
 A patchwork object.
 }
 \description{
-公众号/高分期刊高频出现的组合图：左侧为环境因子间的 Spearman 相关
-下三角热图（带显著性星号），右侧以曲线连接各环境因子与各 nosZ
-分支的类群距离矩阵，连线颜色编码 Mantel r，线宽编码 -log10(P)。
-回答：\strong{哪些环境因子既彼此相关，又整体上与某支系群落结构耦合？}
+/ Spearman
+nosZ
+Mantel r -log10(P)
 }

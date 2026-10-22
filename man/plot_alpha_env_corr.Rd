@@ -19,6 +19,6 @@ plot_alpha_env_corr(x, branch, env, method = "spearman")
 A ggplot object.
 }
 \description{
-六种 alpha 指数与环境因子的 Spearman 相关矩阵（带显著性星号），
-是 alpha 多样性与理化性质关联的标准呈现。
+alpha  Spearman
+alpha
 }

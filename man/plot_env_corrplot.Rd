@@ -17,6 +17,6 @@ plot_env_corrplot(x, env, method = "spearman")
 A ggplot object.
 }
 \description{
-环境因子间 Spearman 相关矩阵热图（上三角 + 数值 + 显著性星号），
-ggplot 实现保证与包内其它图型风格统一、跨设备稳定。
+Spearman  +  +
+ggplot
 }

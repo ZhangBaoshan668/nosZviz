@@ -28,7 +28,7 @@ A data frame with \code{Taxon}, \code{Group}, \code{A} (specificity),
 \code{B} (fidelity), \code{IndVal}, \code{p}, \code{padj}.
 }
 \description{
-经典 IndVal 指数（特异性 A × 忠实度 B）+ 组标签置换检验，
-找出"专属"某分组的高保真类群。比单纯差异检验更能回答
-"哪个类群可以作为该生境的 biosignature"。
+IndVal  A   B+
+""
+" biosignature"
 }

@@ -31,8 +31,8 @@ A data frame with \code{Taxon}, \code{Group} (winning group), \code{LDA} (signed
 \code{mean_in_group}, \code{mean_rest}, \code{kw_p}, \code{wilcox_p}.
 }
 \description{
-简化版 LEfSe 流程（Kruskal-Wallis 组间筛选 -> 组内两两 Wilcoxon 精简 ->
-效应量以两组相对丰度均值之比的 log10 计）。效应量方向指向均值最高的
-分组。注意：这是 LEfSe 的近似实现，投稿时请在方法中写明
-"LEfSe-style analysis implemented in nosZviz"。
+LEfSe Kruskal-Wallis  ->  Wilcoxon  ->
+log10
+LEfSe
+"LEfSe-style analysis implemented in nosZviz"
 }

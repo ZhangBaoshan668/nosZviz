@@ -11,12 +11,12 @@ plot_group_upset(x, branch, level = "otu")
 
 \item{branch}{Branch name.}
 
-\item{level}{\code{"otu"} 或分类层级（用类群存在性代替 OTU）。}
+\item{level}{\code{"otu"}  OTU}
 }
 \value{
 An UpSetR plot object.
 }
 \description{
-组间 OTU（或任意层级类群）存在/缺失的集合交叉，UpSet 呈现——
-回答"各分组的核心 nosZ 类群与特有类群各有多少"。
+OTU/UpSet
+" nosZ "
 }

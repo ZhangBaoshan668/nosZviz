@@ -1,13 +1,13 @@
 # ---------------------------------------------------------------------------
-# 模块六：共现网络
+# 
 # ---------------------------------------------------------------------------
 
-# 由节点/边表重建 igraph 对象
+# / igraph 
 network_graph <- function(x, branch, group = NULL) {
   nw <- nosz_need(x, "network", branch)
   nodes <- nw$nodes
   edges <- nw$edges
-  if (is.null(edges) || nrow(edges) == 0) nosz_abort("分支 ", branch, " 没有边表。")
+  if (is.null(edges) || nrow(edges) == 0) nosz_abort(" ", branch, " ")
   if (!is.null(group)) {
     nodes <- nodes[nodes$Group == group, , drop = FALSE]
     edges <- edges[edges$Group == group, , drop = FALSE]
@@ -27,7 +27,7 @@ network_graph <- function(x, branch, group = NULL) {
   g
 }
 
-# 节点属性整理：模块取前 N 个，其余归为 Other
+#  N  Other
 node_attrs <- function(g, top_modules = 8) {
   v <- igraph::as_data_frame(g, what = "vertices")
   v$Degree <- suppressWarnings(as.numeric(v$Degree))
@@ -71,7 +71,7 @@ plot_network <- function(x, branch, group = NULL, layout = "fr",
   nw <- nosz_need(x, "network", branch)
   groups <- unique(nw$nodes$Group)
   group <- group %||% groups[1]
-  if (!group %in% groups) nosz_abort("分组 `", group, "` 不在网络结果中。可用：",
+  if (!group %in% groups) nosz_abort(" `", group, "` ",
                                      paste(groups, collapse = ", "))
   g <- network_graph(x, branch, group)
   v <- node_attrs(g, top_modules)
@@ -85,7 +85,7 @@ plot_network <- function(x, branch, group = NULL, layout = "fr",
 
   set.seed(seed)
   lay <- ggraph::create_layout(g, layout = layout)
-  # 只给实际出现的模块配色，避免 levels 与取值数量不一致
+  #  levels 
   mods <- unique(as.character(v$Module))
   n_real <- sum(mods != "Other")
   fill_cols <- stats::setNames(rep("grey82", length(mods)), mods)
@@ -160,7 +160,7 @@ plot_network_zipi <- function(x, branch, label_n = 10, zi_cut = 2.5,
   v$Zi <- suppressWarnings(as.numeric(v$Zi))
   v$Pi <- suppressWarnings(as.numeric(v$Pi))
   v <- v[!is.na(v$Zi) & !is.na(v$Pi), , drop = FALSE]
-  if (nrow(v) == 0) nosz_abort("网络节点缺少 Zi/Pi 值。")
+  if (nrow(v) == 0) nosz_abort(" Zi/Pi ")
   v$Role <- factor(v$Role, levels = c("Network hub", "Module hub", "Connector", "Peripheral"))
   role_cols <- c(`Network hub` = "#D7191C", `Module hub` = "#FDAE61",
                  Connector = "#2C7AB6", Peripheral = "grey75")
@@ -208,7 +208,7 @@ plot_network_properties <- function(x, branch, metrics = NULL,
   stopifnot(inherits(x, "noszref"))
   nw <- nosz_need(x, "network", branch)
   st <- nw$stats
-  if (is.null(st)) nosz_abort("缺少 Network_summary_statistics.csv。")
+  if (is.null(st)) nosz_abort(" Network_summary_statistics.csv")
   metrics <- metrics %||% intersect(c("Nodes", "Edges", "Average_degree",
                                       "Modularity", "Transitivity", "Diameter",
                                       "Average_path_length"), colnames(st))
@@ -244,7 +244,7 @@ plot_network_degree <- function(x, branch, palette = "nosz", fit = TRUE) {
   v <- nw$nodes
   v$Degree <- suppressWarnings(as.numeric(v$Degree))
   v <- v[!is.na(v$Degree) & v$Degree > 0, , drop = FALSE]
-  if (nrow(v) == 0) nosz_abort("没有可用的度值。")
+  if (nrow(v) == 0) nosz_abort("")
   tbl <- v %>% dplyr::group_by(Group, Degree) %>%
     dplyr::summarise(N = dplyr::n(), .groups = "drop") %>%
     dplyr::mutate(P = N / sum(N))
@@ -336,7 +336,7 @@ plot_network_upset <- function(x, branch, top_n = 15,
   nodes <- nw$nodes
   sets <- split(as.character(nodes$Node), as.character(nodes$Group))
   sets <- sets[vapply(sets, length, integer(1)) > 0]
-  if (length(sets) < 2) nosz_abort("至少需要两个分组的网络才能做交集分析。")
+  if (length(sets) < 2) nosz_abort("")
   alln <- unique(unlist(sets, use.names = FALSE))
   memb <- vapply(sets, function(s) alln %in% s, logical(length(alln)))
   if (is.null(dim(memb))) memb <- matrix(memb, ncol = length(sets))
@@ -351,7 +351,7 @@ plot_network_upset <- function(x, branch, top_n = 15,
                 data.frame(Combo = "Others", Freq = rest))
   }
   tb$Combo <- factor(tb$Combo, levels = tb$Combo)
-  # 点阵数据
+  # 
   grid <- expand.grid(Combo = levels(tb$Combo), Set = names(sets),
                       stringsAsFactors = FALSE)
   grid$In <- vapply(seq_len(nrow(grid)), function(i) {

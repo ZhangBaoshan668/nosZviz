@@ -31,6 +31,6 @@ numeric variables, or path to such a table.}
 A ggplot object.
 }
 \description{
-在无约束 PCoA 上叠加 \code{vegan::envfit} 拟合的环境因子向量，
-副标题标注每个变量的 R2 与显著性，回答"群落分异沿哪些环境梯度展开"。
+PCoA  \code{vegan::envfit}
+R2 ""
 }

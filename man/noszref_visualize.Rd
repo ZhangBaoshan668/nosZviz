@@ -29,6 +29,8 @@ noszref_visualize(
 
 \item{design}{Optional design passed to \code{\link[=read_noszref]{read_noszref()}} when \code{x} is a path.}
 
+\item{env}{Environmental data}
+
 \item{levels}{Taxonomic levels used for composition figures.}
 
 \item{diff_level}{Taxonomic level used for differential abundance.}

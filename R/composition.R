@@ -1,8 +1,8 @@
 # ---------------------------------------------------------------------------
-# 模块二：分类组成
+# 
 # ---------------------------------------------------------------------------
 
-# 内部分支图：relative abundance 长表
+# relative abundance 
 tax_rel_long <- function(x, branch, level, top_n = 10) {
   m <- nosz_tax_matrix(x, branch, level)
   r <- rel_abund(m)
@@ -13,7 +13,7 @@ tax_rel_long <- function(x, branch, level, top_n = 10) {
   long
 }
 
-# 分类单元配色：Other 固定灰色
+# Other 
 tax_colours <- function(taxa, palette = "Paired") {
   taxa <- as.character(taxa)
   cols <- nosz_pal(length(taxa), palette)
@@ -45,7 +45,7 @@ plot_tax_stack <- function(x, level = "phylum", branch = NULL,
   style <- match.arg(style)
   branches <- branch %||% intersect(x$branches, names(x$tax))
   branches <- branches[vapply(branches, function(b) !is.null(x$tax[[b]][[level]]), logical(1))]
-  if (length(branches) == 0) nosz_abort("没有分支包含 ", level, " 层级。")
+  if (length(branches) == 0) nosz_abort(" ", level, " ")
 
   one <- function(b) {
     long <- tax_rel_long(x, b, level, top_n)
@@ -233,16 +233,16 @@ plot_tax_sunburst <- function(x, branch, inner = "phylum", outer = "genus",
   by <- match.arg(by)
   mi <- nosz_tax_matrix(x, branch, inner)
   mo <- nosz_tax_matrix(x, branch, outer)
-  # 将 outer 归属到 inner：用 BLAST 长表或按命名无法直接映射，
-  # 这里按样本内 outer 排序做近似展示，并用 inner 总量控制比例
+  #  outer  inner BLAST 
+  #  outer  inner 
   smp <- intersect(colnames(mi), colnames(mo))
-  if (length(smp) == 0) nosz_abort("内外层级样本不匹配。")
+  if (length(smp) == 0) nosz_abort("")
   unit <- if (by == "group") x$design$Group[match(smp, x$design$SampleID)] else smp
   mi <- rel_abund(mi[, smp, drop = FALSE])
   mo <- rel_abund(mo[, smp, drop = FALSE])
   grp <- factor(unit, levels = unique(unit))
 
-  # inner 汇总
+  # inner 
   di <- data.frame(
     Unit = rep(as.character(grp), each = nrow(mi)),
     Taxon = rep(rownames(mi), times = length(grp)),
@@ -267,7 +267,7 @@ plot_tax_sunburst <- function(x, branch, inner = "phylum", outer = "genus",
     dplyr::arrange(dplyr::desc(f), .by_group = TRUE) %>% dplyr::ungroup()
   do <- do %>% dplyr::group_by(Unit) %>% dplyr::mutate(ymax = cumsum(f), ymin = dplyr::lag(ymax, default = 0)) %>% dplyr::ungroup()
 
-  # 外环颜色继承内环：按 inner 名称匹配同名列，匹配不到用统一调色板
+  #  inner 
   inner_cols <- tax_colours(unique(di$Taxon), palette)
   outer_taxa <- unique(do$Taxon)
   outer_cols <- tax_colours(outer_taxa, "Set3")
@@ -325,7 +325,7 @@ plot_tax_ternary <- function(x, level = "genus", top_n = 25,
   colour_by <- match.arg(colour_by)
   need <- c("nosZI", "nosZII", "nosZIII")
   if (!all(need %in% names(x$tax))) {
-    nosz_abort("三元图需要 nosZI、nosZII、nosZIII 三个分支的分类表。当前：",
+    nosz_abort(" nosZInosZIInosZIII ",
                paste(names(x$tax), collapse = ", "))
   }
   mats <- lapply(need, function(b) {
@@ -333,7 +333,7 @@ plot_tax_ternary <- function(x, level = "genus", top_n = 25,
     if (inherits(m, "try-error")) return(NULL)
     rowSums(rel_abund(m))
   })
-  if (any(vapply(mats, is.null, logical(1)))) nosz_abort("某些分支缺少该层级分类表。")
+  if (any(vapply(mats, is.null, logical(1)))) nosz_abort("")
   taxa <- Reduce(union, lapply(mats, names))
   tab <- data.frame(Taxon = taxa, stringsAsFactors = FALSE)
   for (i in seq_along(need)) {
@@ -347,13 +347,13 @@ plot_tax_ternary <- function(x, level = "genus", top_n = 25,
     tab <- tab[order(rowSums(tab[, need]), decreasing = TRUE)[seq_len(top_n)], ]
   }
   tab$frac <- tab[, need] / rowSums(tab[, need])
-  # 三角坐标：A 顶点 (0,0)、B 顶点 (1,0)、C 顶点 (0.5, sqrt(3)/2)
+  # A  (0,0)B  (1,0)C  (0.5, sqrt(3)/2)
   tab$px <- tab$frac$nosZII + 0.5 * tab$frac$nosZIII
   tab$py <- sqrt(3) / 2 * tab$frac$nosZIII
   tab$Total <- rowSums(tab[, need])
   tab$Dominant <- need[max.col(as.matrix(tab[, need]), ties.method = "first")]
 
-  # 用 BLAST 长表补充门信息
+  #  BLAST 
   phy <- NULL
   for (b in need) {
     tl <- x$tax_long[[b]]
@@ -483,9 +483,9 @@ plot_tax_corr <- function(x, branch, level = "genus", top_n = 20,
     m <- m[order(rowMeans(m), decreasing = TRUE)[seq_len(top_n)], , drop = FALSE]
   }
   if (value == "relative") m <- rel_abund(m)
-  # 去掉全零行，避免相关系数 NaN
+  #  NaN
   m <- m[rowSums(m) > 0, , drop = FALSE]
-  if (nrow(m) < 3) nosz_abort("可用分类单元少于 3 个，无法计算相关矩阵。")
+  if (nrow(m) < 3) nosz_abort(" 3 ")
   ct <- suppressWarnings(stats::cor(t(m), method = method))
   ct[is.na(ct)] <- 0
   pv <- matrix(1, nrow(ct), ncol(ct), dimnames = dimnames(ct))

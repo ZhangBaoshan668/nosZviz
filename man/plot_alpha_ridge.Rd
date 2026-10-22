@@ -19,6 +19,5 @@ plot_alpha_ridge(x, branch, index = "shannon", palette = "nosz")
 A ggplot object.
 }
 \description{
-山脊图（ggridges）：alpha 指数按分组的密度脊线堆叠，
-直观展示组间分布的偏移与拖尾——公众号常见的分布比较图型。
+ggridgesalpha
 }

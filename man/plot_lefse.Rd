@@ -17,6 +17,5 @@ plot_lefse(x, res = NULL, ...)
 A ggplot object.
 }
 \description{
-横向条形图展示差异类群的效应量，条形按优势分组着色——
-LEfSe 的标准呈现方式（Nature 系期刊 nosZ 论文常用）。
+LEfSe Nature  nosZ
 }

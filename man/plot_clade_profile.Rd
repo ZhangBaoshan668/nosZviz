@@ -19,7 +19,7 @@ plot_clade_profile(
 
 \item{top_n}{Top taxa shown per clade, rest merged as "Other".}
 
-\item{by}{\code{"sample"} 每样本一根柱；\code{"group"} 组均值。}
+\item{by}{\code{"sample"} \code{"group"}}
 
 \item{base_size}{Passed to \code{\link[=theme_nosz]{theme_nosz()}}.}
 }
@@ -27,10 +27,9 @@ plot_clade_profile(
 A ggplot object.
 }
 \description{
-回答的核心生态学问题：\strong{Clade II（或任一支系）的优势是否由某个特定
-类群驱动？} 通用堆叠图把支系信息聚合掉，此图把每个样本的组成按
-nosZ-I / II / III 分段，支系段边框用支系色勾出，段内再按分类学单元
-（该支系主色的深浅渐变）拆分——支系与分类学两个维度同图保留。
+**Clade II
+**
+nosZ-I / II / III
 }
 \examples{
 \dontrun{

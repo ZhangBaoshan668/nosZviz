@@ -26,6 +26,8 @@ plot_diff_forest(
 
 \item{method}{Differential test.}
 
+\item{padj_cut}{P-value cutoff}
+
 \item{top_n}{Number of taxa shown (ranked by absolute log2FC among
 significant taxa, falling back to all taxa).}
 

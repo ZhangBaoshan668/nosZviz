@@ -27,8 +27,8 @@ plot_ordination_constrained(
 \item{env}{Environmental data: data frame with a \code{SampleID} column and
 numeric variables, or path to such a table.}
 
-\item{method}{\code{"RDA"}（Hellinger 转换后的冗余分析）, \code{"CCA"} 或
-\code{"dbRDA"}（基于距离的冗余分析）.}
+\item{method}{\code{"RDA"}Hellinger , \code{"CCA"}
+\code{"dbRDA"}.}
 
 \item{top_n}{Top taxa (by mean abundance) entering the model.}
 
@@ -45,8 +45,8 @@ A ggplot object; the fitted model is attached as attribute
 \code{"model"}.
 }
 \description{
-nosZ 特化的约束排序（RDA / CCA / db-RDA）：以支系内分类单元丰度为
-响应矩阵、环境因子为解释变量，封装 vegan 的 rda()/cca()/capscale()，
-自动做 Hellinger 转换、剔除零方差变量，并在副标题标注约束轴解释率与
-置换检验 P 值。排序图回答：\strong{什么环境条件驱动了该支系类群的分异？}
+nosZ RDA / CCA / db-RDA
+vegan  rda()/cca()/capscale()
+Hellinger
+P ****
 }

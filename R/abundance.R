@@ -1,8 +1,8 @@
 # ---------------------------------------------------------------------------
-# 模块一：基因丰度与分支分配
+# 
 # ---------------------------------------------------------------------------
 
-# 分支专用配色（全包统一）
+# 
 BRANCH_COLS <- c(nosZI = "#1F78B4", nosZII = "#FF7F00", nosZIII = "#33A02C")
 
 #' Branch-level abundance (RPKM)
@@ -34,7 +34,7 @@ plot_branch_rpkm <- function(x, style = c("bar", "box", "summary"),
     d$Branch <- b
     d
   }))
-  if (is.null(df) || nrow(df) == 0) nosz_abort("没有可用的分支 RPKM 表。")
+  if (is.null(df) || nrow(df) == 0) nosz_abort("No available branch RPKM table.")
   df <- merge(df, x$design, by = "SampleID", all.x = TRUE)
   df$SampleID <- factor(df$SampleID, levels = x$design$SampleID)
   df$Branch <- factor(df$Branch, levels = intersect(names(BRANCH_COLS), branches))
@@ -121,7 +121,7 @@ plot_branch_composition <- function(x, style = c("stack", "donut"),
     data.frame(SampleID = d$SampleID, Branch = b, Value = d[[nm]],
                stringsAsFactors = FALSE)
   }))
-  if (is.null(df)) nosz_abort("没有可用的分支丰度表。")
+  if (is.null(df)) nosz_abort("No available branch abundance table.")
   df <- merge(df, x$design, by = "SampleID", all.x = TRUE)
   df$Branch <- factor(df$Branch, levels = intersect(names(BRANCH_COLS), x$branches))
 
@@ -191,7 +191,7 @@ plot_reads_partition <- function(x, palette = "branch", alpha = 0.75,
                                  label = TRUE) {
   stopifnot(inherits(x, "noszref"))
   if (is.null(x$total_reads) || is.null(x$counts)) {
-    nosz_abort("缺少 total reads 或分支命中 reads 表，无法绘制桑基图。")
+    nosz_abort(" total reads  reads ")
   }
   tr <- x$total_reads
   cnt <- do.call(rbind, lapply(x$branches, function(b) {
@@ -200,7 +200,7 @@ plot_reads_partition <- function(x, palette = "branch", alpha = 0.75,
     data.frame(SampleID = d$SampleID, Branch = b, Reads = d$Count,
                stringsAsFactors = FALSE)
   }))
-  if (is.null(cnt)) nosz_abort("没有分支 reads 表。")
+  if (is.null(cnt)) nosz_abort("No branch reads table.")
   df <- merge(cnt, tr, by = "SampleID", all.x = TRUE)
   df <- merge(df, x$design, by = "SampleID", all.x = TRUE)
   unassigned <- df %>%
@@ -276,7 +276,7 @@ plot_rank_abundance <- function(x, branches = NULL, by_sample = FALSE,
     }
   })
   df <- do.call(rbind, res)
-  if (is.null(df)) nosz_abort("没有可用的 OTU 表。")
+  if (is.null(df)) nosz_abort("No available OTU table.")
   df$Branch <- factor(df$Branch, levels = intersect(names(BRANCH_COLS), branches))
   cols <- if (identical(palette, "branch")) BRANCH_COLS else
     stats::setNames(nosz_pal(length(branches), palette), levels(df$Branch))
@@ -319,7 +319,7 @@ plot_branch_heatmap <- function(x, value = c("rpkm", "count"), scale = "row",
     data.frame(SampleID = d$SampleID, Branch = b, Value = d[[col]],
                stringsAsFactors = FALSE)
   }))
-  if (is.null(df)) nosz_abort("没有可用的分支丰度表。")
+  if (is.null(df)) nosz_abort("No available branch abundance table.")
   m <- long_to_matrix(df, "Branch", "SampleID", "Value")
   m <- m[, order_samples(colnames(m), x$design), drop = FALSE]
   ann <- x$design[x$design$SampleID %in% colnames(m), , drop = FALSE]

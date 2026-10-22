@@ -1,8 +1,8 @@
 # ---------------------------------------------------------------------------
-# 读取 NosZRef 输出目录
+#  NosZRef 
 # ---------------------------------------------------------------------------
 
-# 读取带行名的制表符矩阵（beta 距离矩阵、otutab 等）
+# beta otutab 
 read_table_rownames <- function(file) {
   if (is.null(file) || !file.exists(file)) return(NULL)
   if (file.info(file)$size == 0) return(NULL)
@@ -19,7 +19,7 @@ read_table_rownames <- function(file) {
   out
 }
 
-# 读取分组文件，兼容 SampleID/Group 与任意列名
+#  SampleID/Group 
 read_nosz_design <- function(file) {
   if (is.null(file) || !file.exists(file)) return(NULL)
   df <- read_delim_safe(file, delim = "\t")
@@ -44,7 +44,7 @@ read_nosz_design <- function(file) {
   out
 }
 
-# 找到 merge 目录（允许用户直接传 merge 路径或项目根目录）
+#  merge  merge 
 find_merge_dir <- function(path) {
   cand <- c(file.path(path, "merge"), path)
   hit <- cand[dir.exists(cand) & length(list.dirs(cand, recursive = FALSE)) > 0]
@@ -52,12 +52,12 @@ find_merge_dir <- function(path) {
     any(grepl("^nosZ", basename(list.dirs(p, recursive = FALSE))))
   }, logical(1))]
   if (length(hit) == 0) {
-    nosz_abort("在 `", path, "` 下找不到 NosZRef 的 merge 目录（应包含 nosZI/nosZII/nosZIII）。")
+    nosz_abort(" `", path, "`  NosZRef  merge  nosZI/nosZII/nosZIII")
   }
   hit[1]
 }
 
-# 发现分支
+# 
 discover_branches <- function(merge_dir) {
   dirs <- basename(list.dirs(merge_dir, recursive = FALSE))
   found <- dirs[grepl("^nosZ(I|II|III)$", dirs)]
@@ -65,7 +65,7 @@ discover_branches <- function(merge_dir) {
   found[order(rank)]
 }
 
-# 读取单样本结果（有些旧版本没有 merge 目录时使用）
+#  merge 
 read_pe_sample_tables <- function(outdir, branches) {
   samp_dirs <- list.dirs(outdir, recursive = FALSE)
   samp_dirs <- samp_dirs[basename(samp_dirs) != "merge"]
@@ -86,14 +86,14 @@ read_pe_sample_tables <- function(outdir, branches) {
   out
 }
 
-# 分类层级
+# 
 NOSZ_RANKS <- c("kingdom", "phylum", "class", "order", "family", "genus", "species")
-# 分类字符串里实际使用的层级名
+# 
 RANK_LABEL <- c(kingdom = "Kingdom", phylum = "Phylum", class = "Class",
                 order = "Order", family = "Family", genus = "Genus",
                 species = "Species")
 
-# 读某分支某层级的丰度矩阵（rpkm / count），兼容两种命名
+# rpkm / count
 read_tax_level <- function(bdir, b, level, value = c("rpkm", "count")) {
   value <- match.arg(value)
   if (value == "rpkm") {
@@ -112,7 +112,7 @@ read_tax_level <- function(bdir, b, level, value = c("rpkm", "count")) {
   m
 }
 
-# 读网络结果
+# 
 read_network <- function(ndir, b) {
   if (!dir.exists(ndir)) return(NULL)
   nodes_f <- file.path(ndir, "All_nodes_topology_attributes.csv")
@@ -181,23 +181,23 @@ read_network <- function(ndir, b) {
 #' }
 read_noszref <- function(path, design = NULL, branches = NULL,
                          network = TRUE, verbose = TRUE) {
-  if (!dir.exists(path)) nosz_abort("目录不存在：", path)
+  if (!dir.exists(path)) nosz_abort("", path)
   merge_dir <- find_merge_dir(path)
-  # merge 目录的上一级就是 NosZRef 的项目根，metadata.txt 通常放在那里。
-  # （原写法 if(...) outdir <- merge_dir else outdir <- merge_dir 两个分支相同，
-  #   等于永远取 merge_dir，会让项目根下的 metadata.txt 找不到。）
+  # merge  NosZRef metadata.txt 
+  #  if(...) outdir <- merge_dir else outdir <- merge_dir 
+  #    merge_dir metadata.txt 
   outdir <- if (identical(basename(merge_dir), "merge")) dirname(merge_dir) else merge_dir
   avail <- discover_branches(merge_dir)
-  if (length(avail) == 0) nosz_abort("没有在 `", merge_dir, "` 中发现 nosZ 分支目录。")
+  if (length(avail) == 0) nosz_abort(" `", merge_dir, "`  nosZ ")
   if (is.null(branches)) branches <- avail
   branches <- intersect(avail, branches)
   if (length(branches) == 0) {
-    nosz_abort("请求的分支都不存在。可用分支：", paste(avail, collapse = ", "))
+    nosz_abort("", paste(avail, collapse = ", "))
   }
 
-  # ---- 分组信息 ----
-  # design_src 记录分组信息到底来自哪个文件，便于 print() 时自查，
-  # 也用于在"完全没找到分组文件"时给出明确警告（否则会静默退化成单组 All）。
+  # ----  ----
+  # design_src  print() 
+  # "" All
   design_src <- NULL
   if (is.null(design)) {
     auto <- c(file.path(outdir, "metadata.txt"), file.path(outdir, "group.txt"),
@@ -225,7 +225,7 @@ read_noszref <- function(path, design = NULL, branches = NULL,
     design <- design[, c("SampleID", "Group", setdiff(colnames(design), c("SampleID", "Group")))]
   }
 
-  # ---- 总 reads ----
+  # ----  reads ----
   tr_f <- file.path(merge_dir, "sample_merged_total_reads.txt")
   total_reads <- NULL
   if (file.exists(tr_f)) {
@@ -250,7 +250,7 @@ read_noszref <- function(path, design = NULL, branches = NULL,
     total_reads$TotalReads <- as.numeric(total_reads$TotalReads)
   }
 
-  # ---- 若没有 design，用数据里的样本名 ----
+  # ----  design ----
   if (is.null(design) || nrow(design) == 0) {
     smp <- NULL
     if (!is.null(total_reads)) smp <- total_reads$SampleID
@@ -260,21 +260,21 @@ read_noszref <- function(path, design = NULL, branches = NULL,
     }
     design <- data.frame(SampleID = as.character(smp), Group = "All",
                          stringsAsFactors = FALSE)
-    # 没找到分组文件时不报错，但必须提示：否则分组类图会静默退化成一张，
-    # 用户只会看到"图怎么只有一组"却查不到原因。
+    # 
+    # ""
     if (is.null(design_src)) {
-      warning("没有找到分组文件：已依次查找 ",
+      warning(" ",
               paste0(c(file.path(outdir, "metadata.txt"), file.path(outdir, "group.txt"),
                        file.path(outdir, "design.txt"), file.path(path, "metadata.txt")),
-                     collapse = "、"),
-              "。所有 ", nrow(design), " 个样本被归为单组 \"All\"，",
-              "分组类图（分组弦图、LEfSe、beta 分组检验等）将退化或跳过。",
-              "可用 read_noszref(..., design = \"metadata.txt\") 显式指定。",
+                     collapse = ""),
+              " ", nrow(design), "  \"All\"",
+              "LEfSebeta ",
+              " read_noszref(..., design = \"metadata.txt\") ",
               call. = FALSE)
     }
   }
 
-  # ---- 逐分支读取 ----
+  # ----  ----
   res <- list(
     path = normalizePath(merge_dir, mustWork = FALSE),
     outdir = normalizePath(outdir, mustWork = FALSE),
@@ -290,7 +290,7 @@ read_noszref <- function(path, design = NULL, branches = NULL,
   for (b in branches) {
     bdir <- file.path(merge_dir, b)
 
-    # 分支总 RPKM / 命中 reads
+    #  RPKM /  reads
     f <- file.path(bdir, paste0(b, "_merged_rpkm.txt"))
     if (file.exists(f)) {
       x <- read_delim_safe(f, delim = "\t")
@@ -310,12 +310,12 @@ read_noszref <- function(path, design = NULL, branches = NULL,
       }
     }
 
-    # OTU 表
+    # OTU 
     f <- file.path(bdir, paste0(b, "_otutab.txt"))
     m <- read_table_rownames(f)
     if (!is.null(m)) res$otutab[[b]] <- m
 
-    # 抽平表与 alpha
+    #  alpha
     f <- file.path(bdir, "alpha", paste0(b, "_otutab_rare.txt"))
     m <- read_table_rownames(f)
     if (!is.null(m)) res$otutab_rare[[b]] <- m
@@ -343,7 +343,7 @@ read_noszref <- function(path, design = NULL, branches = NULL,
       }
     }
 
-    # beta 距离矩阵
+    # beta 
     bdir_beta <- file.path(bdir, "beta")
     if (dir.exists(bdir_beta)) {
       files <- list.files(bdir_beta, pattern = "\\.txt$", full.names = TRUE)
@@ -357,7 +357,7 @@ read_noszref <- function(path, design = NULL, branches = NULL,
       if (length(mats) > 0) res$beta[[b]] <- mats
     }
 
-    # 七个分类层级
+    # 
     lv <- list()
     for (level in NOSZ_RANKS) {
       r <- read_tax_level(bdir, b, level, "rpkm")
@@ -366,7 +366,7 @@ read_noszref <- function(path, design = NULL, branches = NULL,
     }
     if (length(lv) > 0) res$tax[[b]] <- lv
 
-    # BLAST 注释长表
+    # BLAST 
     f <- file.path(bdir, paste0(b, "_merged_tax.txt"))
     if (file.exists(f) && file.info(f)$size > 0) {
       x <- try(readr::read_delim(
@@ -382,7 +382,7 @@ read_noszref <- function(path, design = NULL, branches = NULL,
         colnames(x)[seq_len(min(length(nm), ncol(x)))] <- nm[seq_len(min(length(nm), ncol(x)))]
         x$pident <- as.numeric(x$pident)
         x$bitscore <- as.numeric(x$bitscore)
-        # 从 qseqid 中推断样本名（用 design 做最长前缀匹配，稳健）
+        #  qseqid  design 
         ids <- unique(design$SampleID)
         ids <- ids[order(nchar(ids), decreasing = TRUE)]
         x$SampleID <- vapply(x$qseqid, function(q) {
@@ -393,37 +393,37 @@ read_noszref <- function(path, design = NULL, branches = NULL,
       }
     }
 
-    # 网络
+    # 
     if (network) {
       nw <- read_network(file.path(bdir, "network"), b)
       if (!is.null(nw)) res$network[[b]] <- nw
     }
   }
 
-  # 若 merge 缺失 rpkm，尝试从单样本文件补齐
+  #  merge  rpkm
   if (length(res$rpkm) == 0) {
     pe <- read_pe_sample_tables(outdir, branches)
     if (!is.null(pe)) res$rpkm <- pe
   }
 
-  # 样本 ID 对不上的情况必须提示：design 里多出来的样本会在作图时被静默丢弃，
-  # 用户只看到样本数变少，很难反查到是大小写/空格不一致。
+  #  ID design 
+  # /
   data_ids <- unique(unlist(lapply(res$rpkm, `[[`, "SampleID")))
   if (length(data_ids) > 0) {
     miss <- setdiff(res$design$SampleID, data_ids)
     if (length(miss) > 0) {
-      warning("design 中有 ", length(miss), " 个样本在结果文件里找不到同名样本，将被忽略：",
+      warning("design  ", length(miss), " ",
               paste(utils::head(miss, 8), collapse = ", "),
               if (length(miss) > 8) " ..." else "",
-              "（请检查大小写与空格是否与 rpkm 文件首列完全一致）", call. = FALSE)
+              " rpkm ", call. = FALSE)
     }
     extra <- setdiff(data_ids, res$design$SampleID)
     if (length(extra) > 0) {
-      warning("结果文件中有 ", length(extra), " 个样本未出现在 design 中，这些样本会被丢弃：",
+      warning(" ", length(extra), "  design ",
               paste(utils::head(extra, 8), collapse = ", "),
               if (length(extra) > 8) " ..." else "", call. = FALSE)
     }
-    # design 顺序保持 metadata 中的顺序（作图图例沿用该顺序），不做重排
+    # design  metadata 
   }
 
   structure(res, class = "noszref")
@@ -484,13 +484,13 @@ nosz_tax_matrix <- function(x, branch, level = "genus", value = "rpkm") {
   stopifnot(inherits(x, "noszref"))
   tx <- nosz_need(x, "tax", branch)
   if (is.null(tx[[level]])) {
-    nosz_abort("分支 ", branch, " 缺少 ", level, " 层级的分类表。可用层级：",
+    nosz_abort(" ", branch, "  ", level, " ",
                paste(names(tx), collapse = ", "))
   }
   m <- tx[[level]][[value]]
   if (is.null(m)) m <- tx[[level]][["rpkm"]]
-  if (is.null(m)) nosz_abort("分支 ", branch, " 的 ", level, " 层级没有可用矩阵。")
-  # 按 design 顺序排列列
+  if (is.null(m)) nosz_abort(" ", branch, "  ", level, " ")
+  #  design 
   smp <- intersect(x$design$SampleID, colnames(m))
   m[, c(smp, setdiff(colnames(m), smp)), drop = FALSE]
 }
@@ -505,7 +505,7 @@ nosz_otu_matrix <- function(x, branch, rarefied = FALSE) {
   stopifnot(inherits(x, "noszref"))
   m <- if (rarefied) x$otutab_rare[[branch]] else x$otutab[[branch]]
   if (is.null(m)) {
-    nosz_abort("分支 ", branch, " 缺少", ifelse(rarefied, "抽平", ""), " OTU 表。")
+    nosz_abort(" ", branch, " ", ifelse(rarefied, "", ""), " OTU ")
   }
   smp <- intersect(x$design$SampleID, colnames(m))
   m[, c(smp, setdiff(colnames(m), smp)), drop = FALSE]

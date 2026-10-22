@@ -14,5 +14,5 @@ A data frame with \code{SampleID}, \code{Group}, per-branch RPKM and
 relative proportion columns.
 }
 \description{
-每样本的支系 RPKM、总丰度与占比，可直接写入论文补充材料。
+RPKM
 }

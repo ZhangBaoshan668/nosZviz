@@ -1,10 +1,10 @@
 # ---------------------------------------------------------------------------
-# 模块八：支系（clade）生态学叙事 —— NosZRef 内置可视化未覆盖的新图型
-# 文献依据：Clade II/I 比值、支系嵌套分类学组成是 nosZ 生态学论文中
-# 审稿人最常追问的两个维度（如 Jones et al. 2013 Nature、Hallin 等）
+# clade  NosZRef 
+# Clade II/I  nosZ 
+#  Jones et al. 2013 NatureHallin 
 # ---------------------------------------------------------------------------
 
-# 三大支系固定色（色盲友好）
+# 
 clade_cols <- function(branches) {
   base <- c(nosZI = "#1F78B4", nosZII = "#FF7F00", nosZIII = "#33A02C")
   cols <- base[branches]
@@ -13,7 +13,7 @@ clade_cols <- function(branches) {
   cols
 }
 
-# 某支系内 top_n 分类单元 + 其余合并，返回相对丰度长表
+#  top_n  + 
 clade_long <- function(x, level, top_n, by = c("sample", "group")) {
   by <- match.arg(by)
   out <- list()
@@ -42,15 +42,15 @@ clade_long <- function(x, level, top_n, by = c("sample", "group")) {
 
 #' Clade-resolved nested taxonomic composition
 #'
-#' 回答的核心生态学问题：**Clade II（或任一支系）的优势是否由某个特定
-#' 类群驱动？** 通用堆叠图把支系信息聚合掉，此图把每个样本的组成按
-#' nosZ-I / II / III 分段，支系段边框用支系色勾出，段内再按分类学单元
-#' （该支系主色的深浅渐变）拆分——支系与分类学两个维度同图保留。
+#' **Clade II
+#' ** 
+#' nosZ-I / II / III 
+#' 
 #'
 #' @param x A `noszref` object.
 #' @param level Taxonomic level nested within clades.
 #' @param top_n Top taxa shown per clade, rest merged as "Other".
-#' @param by `"sample"` 每样本一根柱；`"group"` 组均值。
+#' @param by `"sample"` `"group"` 
 #' @param base_size Passed to [theme_nosz()].
 #' @return A ggplot object.
 #' @export
@@ -63,17 +63,17 @@ plot_clade_profile <- function(x, level = "phylum", top_n = 6,
   stopifnot(inherits(x, "noszref"))
   by <- match.arg(by)
   d <- clade_long(x, level, top_n, by = by)
-  if (is.null(d)) nosz_abort("没有可用的 ", level, " 层级分类表。")
+  if (is.null(d)) nosz_abort(" ", level, " ")
   d$Branch <- factor(d$Branch, levels = x$branches)
   d$ID <- factor(d$ID, levels = order_samples(unique(d$ID), x$design))
 
-  # 每个支系内的分类学排序（按总丰度）
+  # 
   ord_tax <- names(sort(tapply(d$Abundance, paste(d$Branch, d$Taxon), sum),
                         decreasing = TRUE))
   d$TaxonB <- paste(d$Branch, d$Taxon)
   d$TaxonB <- factor(d$TaxonB, levels = ord_tax)
 
-  # 支系渐变色：支系主色 -> 近白
+  #  -> 
   cols <- clade_cols(x$branches)
   fills <- unlist(lapply(x$branches, function(b) {
     tx <- unique(as.character(d$Taxon[d$Branch == b]))
@@ -102,9 +102,9 @@ plot_clade_profile <- function(x, level = "phylum", top_n = 6,
 
 #' Clade abundance ratio (e.g. nosZ-II / nosZ-I)
 #'
-#' nosZ 文献中的经典指标：Clade II / Clade I 丰度比值常用于刻画
-#' "非典型 nosZ 型 N2O 还原菌" 的相对贡献。log2 比值柱 + 分组均值虚线，
-#' 正值 = 分子支系占优，负值 = 分母支系占优。
+#' nosZ Clade II / Clade I 
+#' " nosZ  N2O " log2  + 
+#'  =  = 
 #'
 #' @param x A `noszref` object.
 #' @param numerator,denominator Branch names for the ratio.
@@ -117,12 +117,12 @@ plot_clade_ratio <- function(x, numerator = "nosZII", denominator = "nosZI",
   need <- c(numerator, denominator)
   miss <- setdiff(need, x$branches)
   if (length(miss) > 0) {
-    nosz_abort("分支不存在：", paste(miss, collapse = ", "),
-               "。可用：", paste(x$branches, collapse = ", "))
+    nosz_abort("", paste(miss, collapse = ", "),
+               "", paste(x$branches, collapse = ", "))
   }
   a <- merge(x$rpkm[[numerator]], x$rpkm[[denominator]],
              by = "SampleID", suffixes = c("_num", "_den"))
-  if (nrow(a) == 0) nosz_abort("分支 RPKM 表缺失。")
+  if (nrow(a) == 0) nosz_abort(" RPKM ")
   a <- merge(a, x$design[, c("SampleID", "Group")], by = "SampleID", all.x = TRUE)
   a$ratio <- log2((a$RPKM_num + 1e-6) / (a$RPKM_den + 1e-6))
   a$SampleID <- factor(a$SampleID, levels = order_samples(a$SampleID, x$design))
@@ -146,7 +146,7 @@ plot_clade_ratio <- function(x, numerator = "nosZII", denominator = "nosZI",
 
 #' Per-sample clade statistics table
 #'
-#' 每样本的支系 RPKM、总丰度与占比，可直接写入论文补充材料。
+#'  RPKM
 #'
 #' @param x A `noszref` object.
 #' @return A data frame with `SampleID`, `Group`, per-branch RPKM and
@@ -172,8 +172,8 @@ calc_clade_stats <- function(x) {
 
 #' Pairwise clade abundance scatter
 #'
-#' 三支系两两 RPKM 散点（log10），按分组着色并标注 Spearman 相关，
-#' 用于判断支系间是竞争还是共存的粗略信号。
+#'  RPKM log10 Spearman 
+#' 
 #'
 #' @param x A `noszref` object.
 #' @param palette Palette for groups.
@@ -182,7 +182,7 @@ calc_clade_stats <- function(x) {
 plot_clade_scatter <- function(x, palette = "nosz") {
   stopifnot(inherits(x, "noszref"))
   bs <- x$branches[x$branches %in% names(x$rpkm)]
-  if (length(bs) < 2) nosz_abort("至少需要两个含 RPKM 的分支。")
+  if (length(bs) < 2) nosz_abort(" RPKM ")
   pairs <- utils::combn(bs, 2, simplify = FALSE)
   cols <- group_palette(x$design$Group, palette)
   ps <- lapply(pairs, function(pr) {

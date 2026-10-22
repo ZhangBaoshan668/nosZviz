@@ -30,8 +30,6 @@ plot_tax_dendrogram(
 A ggraph object.
 }
 \description{
-无系统发育树文件时的替代方案：以类群跨样本丰度谱的相似性
-（Spearman 相关距离）做 UPGMA 聚类，环形布局；叶节点大小映射平均
-相对丰度、颜色映射所属门，可直接读出"同涨同落"的类群模块。
-注意：这是\strong{丰度谱系树}而非系统发育树，图注务必写明。
+Spearman  UPGMA
+""
 }

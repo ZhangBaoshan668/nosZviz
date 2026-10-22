@@ -22,7 +22,7 @@ plot_clade_ratio(
 A ggplot object.
 }
 \description{
-nosZ 文献中的经典指标：Clade II / Clade I 丰度比值常用于刻画
-"非典型 nosZ 型 N2O 还原菌" 的相对贡献。log2 比值柱 + 分组均值虚线，
-正值 = 分子支系占优，负值 = 分母支系占优。
+nosZ Clade II / Clade I
+" nosZ  N2O " log2  +
+=  =
 }

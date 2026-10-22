@@ -4,7 +4,7 @@ Title: Publication-Ready Visualization of NosZRef nosZ Profiling
 Version: 0.2.0
 Authors@R: 
     person(given = "Baoshan", family = "Zhang",
-           email = "zhangbaoshan@example.com", role = c("aut", "cre"))
+           email = "2642101135@qq.com", role = c("aut", "cre"))
 Description: A comprehensive, one-stop visualization toolkit designed
     specifically for the output directory of the NosZRef pipeline
     (<https://github.com/ZhangBaoshan668/NosZRef>). It parses every
@@ -24,16 +24,36 @@ Description: A comprehensive, one-stop visualization toolkit designed
 License: MIT + file LICENSE
 Encoding: UTF-8
 Depends: R (>= 4.1.0)
-Imports: ggplot2 (>= 3.4.0), dplyr, magrittr, rlang, tidyr, tibble,
-        readr, purrr, stringr, forcats, scales, vegan, igraph, ggraph,
-        patchwork, RColorBrewer, ggrepel, pheatmap, ggpubr, ggalluvial,
-        UpSetR, ggridges, circlize, viridisLite, grid, gridExtra,
-        grDevices, stats, utils
+Imports: 
+    ggplot2 (>= 3.4.0),
+    dplyr,
+    magrittr,
+    rlang,
+    tidyr,
+    readr,
+    scales,
+    vegan,
+    igraph,
+    ggraph,
+    patchwork,
+    RColorBrewer,
+    ggrepel,
+    pheatmap,
+    ggalluvial,
+    UpSetR,
+    ggridges,
+    circlize,
+    viridisLite,
+    grid,
+    grDevices,
+    stats,
+    utils,
+    ragg
 Suggests: roxygen2, knitr, rmarkdown, DESeq2
 VignetteBuilder: knitr
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.2.3
 NeedsCompilation: no
 Packaged: 2026-10-20 12:38:38 UTC; abu
 Author: Baoshan Zhang [aut, cre]
 Maintainer: Baoshan Zhang <zhangbaoshan@example.com>
+RoxygenNote: 8.0.0
